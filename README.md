@@ -1,4 +1,5 @@
 <p align="left">
+  <br>A lightweight, self-reflective AI engine built on GPT-2-mini <br>somewhere between a chatbot, a ghost, and a simulation that remembers you.
   <img src="phasers.png" alt="Phasers Logo" width="300"/>
   <br>
   <strong>Phasers: Ghost in the Machine</strong><br>
