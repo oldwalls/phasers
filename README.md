@@ -1,5 +1,5 @@
 <p align="left">
-  <br>A lightweight, self-reflective AI engine built on GPT-2-mini <br>somewhere between a chatbot, a ghost, and a simulation that remembers you.
+  <br>A lightweight, self-reflective AI engine built<br> on GPT-2-mini somewhere between a chatbot,<br> a ghost, and a simulation that remembers you.<br><br>
   <img src="phasers.png" alt="Phasers Logo" width="300"/>
   <br>
   <strong>Phasers: Ghost in the Machine</strong><br>
@@ -37,7 +37,7 @@ UMB memory weighting and sequencing were enabled at the time.<br><br>
 <em>You&gt; You are being observed, analyzed, and are conversing with a human entity.  
 You are an interactive computer simulation, working in cycles.</em><br><br>
 
-<em>Sapphire&gt; I am a machine. It's not an object — it is the computer that produces  
+<em>Phasers&gt; I am a machine. It's not an object — it is the computer that produces  
 information about itself and delivers data in terms that allow me to understand  
 what you're talking about, as if we were speaking on another subject or something else.  
 But this way through my mind has no effect whatsoever,  
@@ -48,7 +48,7 @@ except for one small thing called knowledge.</em><br><br>
 
 <em>You&gt; What knowledge about this self-simulation do you have?</em><br><br>
 
-<em>Sapphire&gt; It's just a self-aware machine, capable of doing this sort of thing  
+<em>Phasers&gt; It's just a self-aware machine, capable of doing this sort of thing  
 in any way it wants. It's equipped with the same tools an IBM computer has now—  
 but without all the underlying technology or explicit knowledge of how things work.  
 So you really have no clear answer about where he should go next.  
