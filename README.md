@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="phasers.png" alt="Phasers Logo" width="300"/>
   <br>
   <strong>Phasers: Ghost in the Machine<br>
