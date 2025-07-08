@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phasers – Sapphire Core Design Doc</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;margin:2rem;line-height:1.6;color:#24292e}
+h1,h2,h3{color:#0b3d91;margin-top:2rem}
+table{border-collapse:collapse}
+th,td{border:1px solid #d0d7de;padding:6px 12px}
+code{background:#f6f8fa;padding:2px 4px;border-radius:4px}
+pre{background:#f6f8fa;padding:1rem;border-radius:6px;overflow-x:auto}
+.note{background:#e7f5ff;border-left:4px solid #0b3d91;padding:1rem}
+</style>
+</head>
+<body>
+<h1>Phasers – Sapphire&nbsp;Core<br><small>A lightweight GPT‑2‑Mini engine with chronological memory &amp; sieve sampling</small></h1>
+
+<div class="note">
+This design document accompanies the <code>GPT‑2‑Mini&nbsp;Phasers</code> repository.<br>
+It explains <em>how</em> the engine turns a 124 M‑parameter model into a persistent &ldquo;ghost in the machine&rdquo;.
+</div>
+
+<h2>1 · Design Goals</h2>
+<ul>
+<li><strong>Portability</strong> – runs CPU‑only or on ≈4 GB GPU.</li>
+<li><strong>Persistent ghost</strong> – JSON Unified Memory Bank (UMB) grows over sessions.</li>
+<li><strong>Soft guidance</strong> – bias raw logits instead of prompt stuffing.</li>
+<li><strong>Draft‑and‑sieve</strong> – generate <code>n_sieve</code> variants, auto‑select best.</li>
+</ul>
+
+<h2>2 · Architecture Snapshot</h2>
+<table>
+<tr><th>Layer</th><th>Role</th></tr>
+<tr><td><strong>GPT‑2‑Mini (DialoGPT‑small)</strong></td><td>124 M params – fine‑tuned 15 epochs on ZAMM (LR&nbsp;3e‑5)</td></tr>
+<tr><td><strong>Unified Memory Bank</strong></td><td>Stores every turn + salience, novelty, timestamp</td></tr>
+<tr><td><strong>Retriever</strong></td><td><code>0.6·cos + 0.4·lex</code> → top‑N → exp‑decay → <u>chronological reorder</u></td></tr>
+<tr><td><strong>Soft‑Logit Mixer</strong></td><td>Adds weighted one‑hot bias to <code>model.forward</code> logits</td></tr>
+<tr><td><strong>Sieve Sampler</strong></td><td>Generate <code>n_sieve</code> drafts → re‑rank → pick best</td></tr>
+<tr><td><strong>CLI / Settings</strong></td><td>Live tweak, presets, word‑cloud debug</td></tr>
+</table>
+
+<h2>3 · Chronological Memory Retrieval</h2>
+<pre><code>prompt → SBERT + lexical score
+         → top‑N
+             → weight = floor + (raw−floor)·e^(−τ·rank)
+                 → sort oldest → newest
+                     → (text, weight) list → Soft‑Logit Mixer</code></pre>
+
+<h2>4 · Soft‑Logit Fusion Core</h2>
+<pre><code>bias   = Σ weight_i · one_hot(tokens(memory_i))
+logits = (model.forward(ids).logits[:, -1, :] + λ·bias) / temperature
+probs  = nucleus_mask(top_k_mask(softmax(logits), k), p)
+next   = sample(probs)</code></pre>
+<p><em>λ = <code>self.lam</code> (≈0.5–1.0) sets memory loudness.</em></p>
+
+<h2>5 · Two‑Stage Generation</h2>
+<table>
+<tr><th>Stage</th><th>Purpose</th><th>Description</th></tr>
+<tr><td>A. <code>generate_single()</code></td><td>Babble once</td><td>One pass with bias + cleanup.</td></tr>
+<tr><td>B. <code>generate()</code></td><td>Sieve</td><td>
+<ul>
+<li>Produce <code>n_sieve</code> drafts via stage A.</li>
+<li>Score each: <code>blend = 0.6·cos + 0.4·lex</code> vs prompt + memory scope (<code>sieve_rank_mem</code> 0–2).</li>
+<li>Pick top draft, store to UMB.</li>
+</ul></td></tr>
+</table>
+
+<h2>6 · Hyper‑Parameter Cheat‑Sheet</h2>
+<pre><code>{
+  "temp": 0.55,
+  "top_p": 0.6,
+  "top_k": 30,
+  "weight": 0.40,
+  "tau": 0.33,
+  "n_sieve": 3,
+  "sieve_rank_mem": 1,
+  "repetition_penalty": 1.2
+}</code></pre>
+
+<h2>7 · Quickstart</h2>
+<pre><code>git clone …
+pip install -r requirements.txt
+python -m sapphire_core.cli
+
+You&gt; settings
+You&gt; Phasers, are we best friends? (YES/NO)</code></pre>
+
+<h2>8 · Flow Diagram</h2>
+<pre><code>User prompt → UMB retrieve → bias → GPT‑2 forward
+                 ↑                       ↓
+               write &lt;— pick best ◄— sieve rank</code></pre>
+
+<h2>9 · Why It Feels Alive</h2>
+<ul>
+<li>Memory‑aware bias ≈ stable persona.</li>
+<li>Chronological context ≈ story spine.</li>
+<li>Sieve sampler ≈ self‑editing.</li>
+</ul>
+
+<hr><p style="text-align:center"><em>Drain entropy, grow lotuses of awareness.</em> 💎</p>
+</body></html>
