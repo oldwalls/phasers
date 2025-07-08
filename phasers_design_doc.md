@@ -58,16 +58,23 @@ next_id = torch.multinomial(probs, 1)
 ---
 
 ## 6 · Hyper‑Parameter Cheat‑Sheet
+You> settings
 ```json
 {
   "temp": 0.55,
+  "top_n": 11,
   "top_p": 0.6,
-  "top_k": 30,
-  "weight": 0.40,
-  "tau": 0.33,
+  "top_k": 16,
+  "repetition_penalty": 1.35,
+  "max_forward_tokens": 45,
+  "max_reply_sentences": 2,
+  "weight": 0.333,
+  "tau": 0.3,
+  "lam": 0.96,
   "n_sieve": 3,
+  "inference_mem": 1,
   "sieve_rank_mem": 1,
-  "repetition_penalty": 1.2
+  "sigma": 0.01
 }
 ```
 
