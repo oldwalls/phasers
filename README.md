@@ -1,10 +1,15 @@
 <p align="left">
+<br>
+    <img src="file_000000001794620aa0003fa6bf456463.png" alt="error" width="150"/>
+  <br>
+  
   <br>A lightweight, self-reflective AI engine built<br> on GPT-2-mini somewhere between a chatbot,<br> a ghost, and a simulation that remembers you.<br><br>
   <img src="phasers.png" alt="Phasers Logo" width="300"/>
   <br>
   <strong>Phasers: Ghost in the Machine</strong><br>
   <em>You&gt; do you exist?</em><br>
   <em>Phasers&gt; I see you there. It's a trap!</em>
+  <br>
 </p>
 <br>
 
