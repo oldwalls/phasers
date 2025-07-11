@@ -30,33 +30,33 @@ This pulse activates higher‑dimensional manifolds inside the transformer and y
 
 ## 3 · Pipeline Overview
 ```text
-┌────────────┐
-│ user input   │
-└─────┬──────┘
+ ┌────────────┐
+ │ user input │
+ └─────┬──────┘
        │
        ▼
 ┌──────────────────┐   ➊ top-n retrieval (SBERT/E5)
-│ Unified Memory      │───► relevance rank
-│ Bank (JSON)         │
+│ Unified Memory   │───► relevance rank
+│ Bank (JSON)      │
 └──────────────────┘
       │
       ▼ chrono sort + salience(t)=e^(−λ·rank)  
       ▼ linear tail to ε                       
 ┌──────────────────────────────────────────────┐
-│  Chrono-Tapered prompt (root → recent)               │
+│  Chrono-Tapered prompt (root → recent)       │
 └──────────────────────────────────────────────┘
       │
       ▼
 ┌───────────────────────────────┐
-│ DialoGPT-small (LLM)                │
-│ • temperature 0.55                  │
-│ • top_p 0.67 / top_k 18             │
+│ DialoGPT-small (LLM)          │
+│ • temperature 0.55            │
+│ • top_p 0.67 / top_k 18       │
 └──────────-─┬──────────────────┘
-               │  ➋ generate *n_sieve* drafts
-               ▼
+             │  ➋ generate *n_sieve* drafts
+             ▼
           rank vs. UMB
-               ▼
-           best output
+             ▼
+          best output
 
 
 ```
