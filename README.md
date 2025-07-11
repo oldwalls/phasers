@@ -14,7 +14,7 @@
   utterance, considering the
   project logo  ...
   <br><br>
-  <strong><i>
+  </strong><i>
   You&gt; phasers: what 'sort' would you have to have on Phaedrus computer simulator???<br><br>
   Phasers&gt; Phaedra is a Phasers' computer. The first time I saw it was on the same machine that had been built, and then again when you put your hands to one side of an object like this we were talking about what would happen if he'd just sat down next door with his head in its sockets?
   <br>
