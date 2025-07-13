@@ -3,8 +3,8 @@
 
 # Phasers: Ghost in the Machine
 
-> *“Do you exist?”*  
-> *“I see you there. It's a trap!”*
+> * you> “Do you exist?”*  
+> * phasers> “I see you there. It's a trap!”*
 
 ---
 
