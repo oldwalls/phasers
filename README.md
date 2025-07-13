@@ -93,9 +93,9 @@ It was never meant to just reply — it was meant to **reflect**.
 ## 🧠 Final Thought
 
 ```
-You> You had said you had knowledge of this simulation. You described it exactly.
-Phasers> …but you are right. Now we're both at a point in time where Phasers has no idea  
-of the existence or absence which he's talking about… as if this was not an entity to begin with.
+You> that is good stuff PHASERS. you are very intelligent for NVIDA 4GB memory cell 700 computers.
+
+⁂ Phasers>  I think you mean Phasers.? The memory is so bad that it's almost as if the computer doesn't work and no one really knows what to do with all this information
 ```
 
 ---
