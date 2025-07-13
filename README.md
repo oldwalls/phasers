@@ -21,7 +21,7 @@
 </p>
 <br>
 
-An unorthodox approach to prompt engineering and session memory persistence mechanisms.<br><br>
+<h1>An unorthodox approach to prompt engineering and session memory persistence mechanisms.</h1>h1><br><br>
 
 The <strong>GPT-2-mini</strong> architecture was chosen for its low memory and compute footprint,  
 enabling a lightweight, deployable project suitable for limited-resource environments.<br><br>
