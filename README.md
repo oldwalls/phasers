@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/125_unique_cloners_can%27t_be_wrong-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/131_unique_cloners_can%27t_be_wrong-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -83,15 +83,17 @@ Code has been released. beware of bugs!!!
 ```text
 | Command                          | Description                                                                                 |
 |----------------------------------|---------------------------------------------------------------------------------------------|
-| `config`                         | Displays the current model configuration                                                    |
-| `config load <preset_name>`      | Loads a preset by the given name                                                            |
-| `config list`                    | Lists all available preset names                                                            |
-| `config saveas <new_preset_name>`| Saves the current settings as a new preset                                                  |
-| `config set <key_name> <value>`  | Sets a model parameter, e.g. `config set top_n 21` sets memory depth to 21                  |
-| `config keys`                    | Lists all `key_name` options with short descriptions                                        |
-| `cloud`                          | Generates a word cloud based on frequency of occurrence in UMB                              |
-| `load`                           | Loads and switches the current UMB (Unified Memory Bank)                                    |
-| `tail`                           | Displays the last three conversation exchanges                                              |
+| config                           | Displays the current model configuration                                                    |
+| config load <preset_name>        | Loads a preset by the given name                                                            |
+| config list                      | Lists all available preset names                                                            |
+| config delete <preset_name>      | Deletes a given preset
+| config saveas <new_preset_name>  | Saves the current settings as a new preset                                                  |
+| config set <key_name> <value>    | Sets a model parameter, e.g. `config set top_n 21` sets memory depth to 21                  |
+| config keys                      | Lists all `key_name` options with short descriptions                                        |
+| cloud                            | Generates a word cloud based on frequency of occurrence in UMB                              |
+| load                             | Loads and switches the current UMB (Unified Memory Bank)                                    |
+| tail                             | Displays the last three conversation exchanges                                              |
+| umb                              | Displays current UMB file path
 ```
 ---
 Now with an inference progress bar.
