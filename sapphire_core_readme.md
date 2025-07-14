@@ -27,9 +27,10 @@ The result is the **contextual memory echo** — a resonant tail of relevant pre
 
 The final prompt sent to the LLM follows this structure:
 
-1. A **time-ordered tail** of the last `n=5` prompt/response pairs.
+1. A **time-ordered tail** of the last `n=8` prompt/response pairs.
 2. The **current user prompt**.
-3. A **chronologically ordered**, top-N list of contextually similar memory entries (retrieved from the Unified Memory Bank — UMB).
+3. A **chronologically ordered and ranked by relevance** top-N list of contextually similar memory entries (retrieved from the Unified Memory Bank — UMB).
+4. The **current user prompt**.
 
 Each memory entry is weighted according to relevance, forming a *semantic induction cascade*. This structure triggers the model's internal logic narrative to extend itself — attempting to generalize based on prior knowledge.
 
@@ -87,18 +88,18 @@ This is **logic closure scoring** — an attempt to pick the most semantically c
    exponential⇢linear salience taper
            │
            ▼
-┌────────────────────────────────────┐
-│ 2 · final prompt =                 │
-│   • tail of last k turns           │
-│   • current user prompt            │
-│   • chrono-tapered memory block    │
-|   * current user prompt            |
-└────────────────────────────────────┘
+┌───────────────────────────────────┐
+│ 2 · final prompt =                │ |
+│   • tail of last k turns          │ | direction of logic induction chain
+│   • current user prompt           │ | 
+│   • chrono-tapered memory block   │ ▼
+|   • current user prompt           | ▼
+└───────────────────────────────────┘
            │
            ▼
 ┌────────────────────────┐
 │ 3 · DialoGPT-small     │
-│    (T=0.55, p=0.67…)   │
+│ (model config params)  │
 └──────────┬─────────────┘
            │ n_sieve drafts
            ▼
