@@ -78,7 +78,21 @@ So you really have no clear answer about where he should go next.
 
 This project is under active development.  
 Code has been released. beware of bugs!!!
-
+---
+## 🧐 commands shortlist.
+```text
+| Command                          | Description                                                                                 |
+|----------------------------------|---------------------------------------------------------------------------------------------|
+| `config`                         | Displays the current model configuration                                                    |
+| `config load <preset_name>`      | Loads a preset by the given name                                                            |
+| `config list`                    | Lists all available preset names                                                            |
+| `config saveas <new_preset_name>`| Saves the current settings as a new preset                                                  |
+| `config set <key_name> <value>`  | Sets a model parameter, e.g. `config set top_n 21` sets memory depth to 21                  |
+| `config keys`                    | Lists all `key_name` options with short descriptions                                        |
+| `cloud`                          | Generates a word cloud based on frequency of occurrence in UMB                              |
+| `load`                           | Loads and switches the current UMB (Unified Memory Bank)                                    |
+| `tail`                           | Displays the last three conversation exchanges                                              |
+```
 ---
 
 ## ❤️ Vision
