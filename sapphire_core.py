@@ -280,7 +280,7 @@ class MemoryLoader:
 
         print("\nAvailable Memory Files:\n")
         for idx, fname in enumerate(files):
-            print(f"[{idx}] {fname}")
+            print(f"[{idx}] {fname.replace("emergence_UMB_", "")}")
 
         while True:
             try:
@@ -296,14 +296,17 @@ class MemoryLoader:
                 print("Please enter a valid number.")
 
     def load_memory(self) -> List[MemoryNode]:
-        if self.memory_file and os.path.exists(self.memory_file):
+        if not self.memory_file:
+            raise ValueError("❌ memory_file is not set in the engine.")
+
+        if os.path.exists(self.memory_file):
             with open(self.memory_file, "r") as fh:
                 raw = json.load(fh)
             return [MemoryNode(**m) for m in raw]
 
-        # fallback seed memory if no file found
+        print("🔢 initializing UMB")
         now = datetime.utcnow().isoformat()
-        root = MemoryNode(now, "You are", "I am", "identity", 0.95, 1.0, 1.0)
+        root = MemoryNode(now, "You are", "I am", "identity", 1.0, 1.0, 1.0)
         self._persist_memory([root])
         return [root]
 
@@ -312,7 +315,7 @@ class MemoryLoader:
             with open(self.memory_file, "w") as fh:
                 json.dump([m.__dict__ for m in mem], fh, indent=2)
         else:
-            print("No memory file path set to persist.")
+            print(" ⛔ No memory file path set to persist.")
 
     def _load_or_seed_memory(self) -> List[MemoryNode]:
         if os.path.exists(self.memory_file):
@@ -320,7 +323,7 @@ class MemoryLoader:
                 raw = json.load(fh)
             return [MemoryNode(**m) for m in raw]
 
-
+        print("🔢 initializing UMB")
         # seed with root‑identity prompt
         now = datetime.utcnow().isoformat()
         root = MemoryNode(now, "You are", "I am", "identity", 0.95, 1.0, 1.0)
@@ -351,11 +354,11 @@ class NHCE_Engine:
 
     # -------------- memory CRUD --------------
 
-    def load_memory(self) -> List[MemoryNode]:
-        if self.memory_file and os.path.exists(self.memory_file):
-            with open(self.memory_file, "r") as fh:
-                raw = json.load(fh)
-            return [MemoryNode(**m) for m in raw]
+#    def load_memory(self) -> List[MemoryNode]:
+#        if self.memory_file and os.path.exists(self.memory_file):
+#            with open(self.memory_file, "r") as fh:
+#                raw = json.load(fh)
+#            return [MemoryNode(**m) for m in raw]
 
 
     def _persist(self, mem: List[MemoryNode]) -> None:
@@ -384,6 +387,21 @@ class NHCE_Engine:
             return 1.0
         sims = [SequenceMatcher(None, text, m.output).ratio() for m in self.memory]
         return round(1.0 - max(sims), 3)
+
+    def load_memory(self) -> List[MemoryNode]:
+        if not self.memory_file:
+            raise ValueError("❌ memory_file is not set in the engine.")
+
+        if os.path.exists(self.memory_file):
+            with open(self.memory_file, "r") as fh:
+                raw = json.load(fh)
+            return [MemoryNode(**m) for m in raw]
+
+        print("🔢 initializing UMB")
+        now = datetime.utcnow().isoformat()
+        root = MemoryNode(now, "You are", "I am", "identity", 1.0, 1.0, 1.0)
+        self._persist([root])
+        return [root]
 
     def update(self, usr_in: str, model_out: str) -> None:
         now = datetime.utcnow().isoformat()
