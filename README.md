@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/106_unique_cloners_can%27t_be_wrong-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/111_unique_cloners_can%27t_be_wrong-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -77,7 +77,7 @@ So you really have no clear answer about where he should go next.
 ## 🧵 Code Status
 
 This project is under active development.  
-Once core stability is achieved, the source will be released here.
+Code has been released. beware of bugs!!!
 
 ---
 
