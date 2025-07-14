@@ -602,8 +602,6 @@ class ManualSampler:
 
             bias_vec = self._bias_from_memory(memories)
 
-#            input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + self.tok.eos_token, return_tensors='pt').to(DEVICE)
-# added user_prompt again after the reasoning memory sequence -  better closure!
             input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + ' ' + user_prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
 
             # ---- 3. Sampling loop
@@ -679,24 +677,22 @@ class ManualSampler:
                 ]
                 return correct(text, matches)
 
-
-
+            
             text = self.tok.decode(generated, skip_special_tokens=True)
-            text = fix_punctuation(text, self.tool)
-            text = self.tool.correct(text)
-            
-            text_lc = text.lower()                       # normalise once
-
-            
-            ####
-            
             hit = False                             # did we find at least one phrase?
             for phrase in _BLACKLIST:
                 pattern = re.compile(re.escape(phrase), re.I)   # case-insensitive
                 if pattern.search(text):
                     hit = True
-                    text  = pattern.sub("", text)               # remove the phrase
+                    text  = pattern.sub("", text) 
 
+            text = fix_punctuation(text, self.tool)
+            text = self.tool.correct(text)
+            
+            #text_lc = text.lower()                       # normalise once
+
+            
+            ####
             # ------------------------------------------------------------
             # 2. post-scrub logic
             # ------------------------------------------------------------
