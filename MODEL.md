@@ -41,6 +41,6 @@ Make sure all dependencies are installed.
 ## Model specifics
 * base model: "microsoft/DialoGPT-small"
 * Layer 1: "zen and the art of motorcycle maintenance" - 15 epochs at 5e-5 learning rate
-* Layer 1: "Tao Te Ching" - 7 epochs at 5e-5 learning rate
+* Layer 2: "Tao Te Ching" - 7 epochs at 5e-5 learning rate
 
 > the overlays wake up the base corpus and make it emergent.
