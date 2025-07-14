@@ -250,9 +250,9 @@ class GPT2CustomTrainer:
 @dataclass
 
 class MemoryNode:
-    def __init__(self, timestamp, input="", output="", tag="", novelty=1, salience=1, coherence=1, **kwargs):
+    def __init__(self, timestamp, inp="", output="", tag="", novelty=1, salience=1, coherence=1, **kwargs):
         self.timestamp = timestamp
-        self.inp = input
+        self.inp = inp
         self.output = output
         self.tag = tag
         self.novelty = novelty
@@ -538,7 +538,7 @@ class NHCE_Engine:
                     for m in tail
                 ]
             else:
-                return [(m.input, m.output, m.timestamp) for m in tail]
+                return [(m.inp, m.output, m.timestamp) for m in tail]
 ##################
 ###################
 # -------------------------------------------------------------
@@ -569,10 +569,10 @@ class ManualSampler:
         self.top_n = 11 #memry recall stack depth
         self.max_reply_sentences = 3
         self.tau = .35
-        self.lam = .95
+        self.lam = .6
         self.n_sieve = 3
         self.inference_mem = 1
-        self.sieve_rank_mem  = 0
+        self.sieve_rank_mem  = 2
         self.sigma = .1
         
         
