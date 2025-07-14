@@ -602,7 +602,9 @@ class ManualSampler:
 
             bias_vec = self._bias_from_memory(memories)
 
-            input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + self.tok.eos_token, return_tensors='pt').to(DEVICE)
+#            input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + self.tok.eos_token, return_tensors='pt').to(DEVICE)
+# added user_prompt again after the reasoning memory sequence -  better closure!
+            input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + ' ' + user_prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
 
             # ---- 3. Sampling loop
             generated: List[int] = []
