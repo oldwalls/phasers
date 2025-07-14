@@ -118,9 +118,9 @@ def main():
         gen.top_k = lp["top_k"]
         gen.pen = lp["repetition_penalty"]
         gen.max_tokens = lp["max_forward_tokens"]
-        gen.nhce.max_reply_sentences = lp["max_reply_sentences"]
+        gen.max_reply_sentences = lp["max_reply_sentences"]
         gen.b_scale = lp["weight"]
-        gen.nhce.tau = lp["tau"]
+        gen.tau = lp["tau"]
         gen.lam = lp["lam"]
         gen.n_sieve = lp["n_sieve"]
         gen.inference_mem =lp["inference_mem"],
@@ -263,6 +263,7 @@ def main():
         if usr.lower().startswith("config"):
                 live_params, msg = handle_settings_command(usr, live_params)
                 print(msg)            # or route to console log
+                update_model_with_live_params(live_params, gen)
                 continue 
 
         else:

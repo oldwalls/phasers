@@ -594,7 +594,7 @@ class ManualSampler:
         for text, weight in memories:
             ids = self.tok.encode(text, add_special_tokens=False)
             inc = weight  #self.b_scale * weight # simple linear mapping → could be log1p
-            bias_vec[torch.tensor(ids, device=DEVICE)] += inc
+            bias_vec[torch.tensor(ids, dtype=torch.long, device=DEVICE)] += inc
         
         vocab = self.model.config.vocab_size          # 50304 for Pythia-160m
         if bias_vec.size(0) != vocab:
@@ -609,38 +609,21 @@ class ManualSampler:
 
     # ---------------- main generate ----------------
     @torch.no_grad()
-    def generate_single(self, user_prompt: str, write_memory: bool = False) -> str:
+    def generate_single(self, input_ids, bias_vec, write_memory: bool = False) -> str:
         """Single‑shot generation with  true soft‑logit memory fusion."""
-        print(" 🏁prompt generation ", end="", flush=True)        
+        #print(" 🏁prompt generation ", end="", flush=True)        
+        
         babble = True
         while babble:
             # ---- 1. Encode prompt
             
         ##    print("**** <context memory retrive>:")
         
-            # ---- 2. Pull memories & build bias
-            ctx_block = self.mem.tail_memories(n=8, as_text=True, join_io=False) 
-            
-            memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload=self.inference_mem, floor=self.sigma)
-
-
-
-            tot_memory_str = ''
-            for memory_text, memory_weight in memories:
-                tot_memory_str = tot_memory_str + memory_text
-                
-            #print("**** <inference start>:")
-            #print(">>>>>>prompt RAW: ", tot_memory_str)
-
-            bias_vec = self._bias_from_memory(memories)
-
-            input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + ' ' + user_prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
-
             # ---- 3. Sampling loop
             generated: List[int] = []
             past = None
             
-            print(" ♻LLM token loop", end="", flush=True)
+            print(" ♻ LLM token loop", end="", flush=True)
             
             for _ in range(self.max_tokens):   # max_new_tokens
                 max_pos = self.model.config.n_positions
@@ -736,7 +719,7 @@ class ManualSampler:
             # ------------------------------------------------------------
             
             if len(text) < 14:
-                print("[X]", end="")                 # we did remove something
+                print("[X]", end="", flush=True)                 # we did remove something
             else:    
                 babble = False
                 #print(self.mem.enforce_sentence_boundaries(text)," [X] \n ")
@@ -753,18 +736,41 @@ class ManualSampler:
 
     def generate(self, user_prompt: str, write_memory: bool = True) -> str:
 
-        lm_input = self.tok.encode(user_prompt, return_tensors="pt").to("cuda")
+       # lm_input = self.tok.encode(user_prompt, return_tensors="pt").to("cuda")
         draft_out = []
         # 1) draft N completions
         
+        print(" 🏁 prompt generation ", end="", flush=True)        
+
+            # ---- 1. Encode prompt
+            
+        ##    print("**** <context memory retrive>:")
         
+        # ---- 2. Pull memories & build bias
+        ctx_block = self.mem.tail_memories(n=8, as_text=True, join_io=False) 
+        
+        memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload=self.inference_mem, floor=self.sigma)
+
+
+
+        tot_memory_str = ''
+        for memory_text, memory_weight in memories:
+            tot_memory_str = tot_memory_str + memory_text
+            
+        #print("**** <inference start>:")
+        #print(">>>>>>prompt RAW: ", tot_memory_str)
+
+        bias_vec = self._bias_from_memory(memories)
+
+        input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + ' ' + user_prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
+   
         for idx in range(self.n_sieve):
             # Clear line
             # Show progress
             print(f"\r 🔀 LLM inference > {idx + 1} ", end="", flush=True)
             
             # Run generation
-            draft_out.append(self.generate_single(user_prompt))
+            draft_out.append(self.generate_single(input_ids, bias_vec))
             if idx != self.n_sieve:
                 print("\r" + " " * 100, end="\r", flush=True)
                 
@@ -799,7 +805,7 @@ class ManualSampler:
                 txt = txt
             
 ########################
-                
+            print("📝", end="", flush=True)    
             ids = self.tok.encode(txt, return_tensors="pt").to("cuda")
 
             if ids.numel() == 0:                  # empty after blacklist trimming
