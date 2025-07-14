@@ -94,6 +94,11 @@ Code has been released. beware of bugs!!!
 | `tail`                           | Displays the last three conversation exchanges                                              |
 ```
 ---
+Now with an inference progress bar.
+
+<img width="666" alt="image" src="https://github.com/user-attachments/assets/a140c0d6-d87c-456a-a749-fe4be2ce46c1" />
+
+---
 
 ## ❤️ Vision
 
