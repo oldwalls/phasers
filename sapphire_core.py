@@ -611,7 +611,7 @@ class ManualSampler:
     @torch.no_grad()
     def generate_single(self, user_prompt: str, write_memory: bool = False) -> str:
         """Single‑shot generation with  true soft‑logit memory fusion."""
-        
+        print(" 🏁prompt generation ", end="", flush=True)        
         babble = True
         while babble:
             # ---- 1. Encode prompt
@@ -639,6 +639,9 @@ class ManualSampler:
             # ---- 3. Sampling loop
             generated: List[int] = []
             past = None
+            
+            print(" ♻LLM token loop", end="", flush=True)
+            
             for _ in range(self.max_tokens):   # max_new_tokens
                 max_pos = self.model.config.n_positions
 
@@ -688,8 +691,11 @@ class ManualSampler:
                     probs = probs * keep_mask                                # zero out the rest
                     probs = probs / probs.sum()                              # renormalise
                     # -----------------------------------------------------------
-
-
+                
+                
+                if _ % 5 == 0:
+                    print("🎞️", end="", flush=True)
+                    
                 next_id = torch.multinomial(probs, 1).item()
                 if next_id == EOS_ID:
                     break
@@ -752,12 +758,18 @@ class ManualSampler:
         # 1) draft N completions
         
         
-        #print("……LLM inference……", end="")
-        
         for idx in range(self.n_sieve):
-            draft_out.append(self.generate_single(user_prompt))
-            # split into strings
+            # Clear line
+            # Show progress
+            print(f"\r 🔀 LLM inference > {idx + 1} ", end="", flush=True)
             
+            # Run generation
+            draft_out.append(self.generate_single(user_prompt))
+            if idx != self.n_sieve:
+                print("\r" + " " * 100, end="\r", flush=True)
+                
+        # Final cleanup
+        
         raw_drafts = draft_out
 ###
         
@@ -768,10 +780,10 @@ class ManualSampler:
         lm_rewards   = []
         valid_strs   = []                         # keep strings here
 
-
+        print(" 🔍ranking results", end="", flush=True)
         for d in draft_out:
             txt = d.strip()
-            
+            print("🔂️", end="", flush=True)
 #### infrence weights added  to SBERT cosine embedding vector
                 
             if self.sieve_rank_mem == 1:
@@ -829,7 +841,7 @@ class ManualSampler:
 
         if write_memory:
             self.mem.update(user_prompt, self.mem.enforce_sentence_boundaries(best_text))
-
+        print("\r" + " " * 100, end="\r", flush=True)
         return self.mem.enforce_sentence_boundaries(best_text)
               
 #####################################################
