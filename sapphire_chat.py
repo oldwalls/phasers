@@ -31,7 +31,7 @@ from transformers import (
 from sentence_transformers import SentenceTransformer, util
 import language_tool_python as lt
 import nltk 
-nltk.download('punkt') # you can comment out dwnload after first shot gets it
+#nltk.download('punkt') # you can comment out dwnload after first shot gets it
 
 
 ### Hardware check
@@ -58,8 +58,8 @@ class PromptClassifier:
 # ────────────────────────────────────────────────────────────────────────
 # 2.   NHCE MEMORY + SOFT‑LOGIT Sampler             
 # ────────────────────────────────────────────────────────────────────────
-from sapphire_core import NHCE_Engine, ManualSampler, GPT2CustomTrainer   
-
+from sapphire_core import NHCE_Engine, ManualSampler,  GPT2CustomTrainer   
+from sapphire_core import MemoryLoader
 
 
 # ----------------------------
@@ -92,8 +92,7 @@ def main():
     nhce  = NHCE_Engine(trainer.model, trainer.tok)
     gen   = ManualSampler(trainer.model, trainer.tok, nhce)
     clf   = PromptClassifier()
-    #think = ReasoningEngine(nhce, gen)
-    #tot = totCtrl.ToTController(think, nhce)
+    loader = MemoryLoader()
 
     live_params = {
                     "temp":0.567,
@@ -240,7 +239,28 @@ def main():
             handle_cloud_command(nhce.memory)
             continue  # Skip standard generation
 
-        if usr.lower().startswith("settings"):
+        if usr.lower().strip() == "tail":
+            for chatlog in nhce.tail_memories(n=3):
+                print(chatlog)
+            continue  # Skip standard generation
+            
+        if usr.lower().strip() == "load":
+
+            loader.choose_memory_file()
+            nhce.memory_file = loader.memory_file #update cross system
+            nhce.memory = loader.load_memory()
+
+            for chatlog in nhce.tail_memories(n=3):
+                print(chatlog)
+           
+            continue  # Skip standard generation            
+        
+        if usr.lower().strip() == "umb":
+            print(">> 💾 ", nhce.memory_file)
+            continue  # Skip standard generation        
+                        
+
+        if usr.lower().startswith("config"):
                 live_params, msg = handle_settings_command(usr, live_params)
                 print(msg)            # or route to console log
                 continue 

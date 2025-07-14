@@ -248,15 +248,85 @@ class GPT2CustomTrainer:
 # 2.  NHCE ENGINE  (memory, intent, salience, etc.)
 # -------------------------------------------------------------
 @dataclass
-class MemoryNode:
-    timestamp: str
-    input: str
-    output: str
-    intent: str
-    salience: float
-    novelty: float
-    coherence: float
 
+class MemoryNode:
+    def __init__(self, timestamp, input="", output="", tag="", novelty=1, salience=1, coherence=1, **kwargs):
+        self.timestamp = timestamp
+        self.inp = input
+        self.output = output
+        self.tag = tag
+        self.novelty = novelty
+        self.salience = salience
+        self.coherence = coherence
+
+
+class MemoryLoader:
+    def __init__(self, directory=".", memory_file = "emergence_UMB.json"):
+        self.directory = directory
+        self.memory_file = memory_file
+
+    def list_memory_files(self) -> List[str]:
+        return sorted([
+            f for f in os.listdir(self.directory)
+            if f.startswith("emergence_UMB_") and f.endswith(".json")
+        ])
+
+    def choose_memory_file(self) -> str:
+        files = self.list_memory_files()
+
+        if not files:
+            print("No memory files found.")
+            return None
+
+        print("\nAvailable Memory Files:\n")
+        for idx, fname in enumerate(files):
+            print(f"[{idx}] {fname}")
+
+        while True:
+            try:
+                choice = int(input("\nSelect a memory file by number: "))
+                if 0 <= choice < len(files):
+                    self.memory_file = os.path.join(self.directory, files[choice])
+                    print(f"Selected: {files[choice]}")
+                    return self.memory_file
+                    
+                else:
+                    print("Invalid selection. Try again.")
+            except ValueError:
+                print("Please enter a valid number.")
+
+    def load_memory(self) -> List[MemoryNode]:
+        if self.memory_file and os.path.exists(self.memory_file):
+            with open(self.memory_file, "r") as fh:
+                raw = json.load(fh)
+            return [MemoryNode(**m) for m in raw]
+
+        # fallback seed memory if no file found
+        now = datetime.utcnow().isoformat()
+        root = MemoryNode(now, "You are", "I am", "identity", 0.95, 1.0, 1.0)
+        self._persist_memory([root])
+        return [root]
+
+    def _persist_memory(self, mem: List[MemoryNode]) -> None:
+        if self.memory_file:
+            with open(self.memory_file, "w") as fh:
+                json.dump([m.__dict__ for m in mem], fh, indent=2)
+        else:
+            print("No memory file path set to persist.")
+
+    def _load_or_seed_memory(self) -> List[MemoryNode]:
+        if os.path.exists(self.memory_file):
+            with open(self.memory_file) as fh:
+                raw = json.load(fh)
+            return [MemoryNode(**m) for m in raw]
+
+
+        # seed with root‑identity prompt
+        now = datetime.utcnow().isoformat()
+        root = MemoryNode(now, "You are", "I am", "identity", 0.95, 1.0, 1.0)
+        self._persist([root])
+        
+        return [root]
 
 class NHCE_Engine:
     """Maintains Unified‑Memory and lightweight cognitive tagging."""
@@ -273,57 +343,19 @@ class NHCE_Engine:
         self.embedder = SentenceTransformer("all-MiniLM-L6-v2").to(DEVICE)
         self.memory_file = memory_file
         self.max_tokens = max_tokens
-        self.memory: List[MemoryNode] = self._load_or_seed_memory()
+        self.memory = self.load_memory()
         self.tau = 0.36
         self.max_reply_sentences = 2
         self.mem_payload = 0
         self.sigma = .4
+
     # -------------- memory CRUD --------------
 
-    def compute_hybrid_salience(self, nodes: Sequence[Any],
-                                lam: float = 0.4,
-                                eps: float = 0.5):
-                                    
-        def ts(n):  # timestamp accessor
-            return n.timestamp if hasattr(n, "timestamp") else n["timestamp"]
-
-        def set_sal(n, v):
-            if hasattr(n, "salience"):
-                n.salience = v
-            else:
-                n["salience"] = v
-
-        # order newest → oldest ----------------------------------------------
-        nodes_sorted = sorted(nodes,
-                              key=lambda n: datetime.fromisoformat(ts(n)),
-                              reverse=True)
-        N = len(nodes_sorted)
-        if N == 0:
-            return
-        delta = 1 / N
-        
-        # assign --------------------------------------------------------------
-        for r, node in enumerate(nodes_sorted):
-            sal = (N - (r + 1)) * delta + lam
-            #set_sal(node, sal)                                            
-            set_sal(node, 1)         
-
-
-    def _load_or_seed_memory(self) -> List[MemoryNode]:
-        if os.path.exists(self.memory_file):
-            with open(self.memory_file) as fh:
+    def load_memory(self) -> List[MemoryNode]:
+        if self.memory_file and os.path.exists(self.memory_file):
+            with open(self.memory_file, "r") as fh:
                 raw = json.load(fh)
             return [MemoryNode(**m) for m in raw]
-
-
-        # seed with root‑identity prompt
-        now = datetime.utcnow().isoformat()
-        root = MemoryNode(now, "You are", "I am", "identity", 0.95, 1.0, 1.0)
-        self._persist([root])
-        
-        return [root]
-        
-
 
 
     def _persist(self, mem: List[MemoryNode]) -> None:
@@ -399,9 +431,9 @@ class NHCE_Engine:
         for mem in self.memory:
             
             if payload == 0:
-                total_memory += mem.input
+                total_memory += mem.inp
             elif payload == 1:
-                total_memory += (mem.input + " " + mem.output)
+                total_memory += (mem.inp + " " + mem.output)
                         
             m_emb = self.embedder.encode(total_memory, convert_to_tensor=True)
             
@@ -493,16 +525,16 @@ class NHCE_Engine:
             blocks = []
             for m in tail:
                 if join_io:
-                    blocks.append(f"{m.input.strip()}. {m.output.strip()}")
+                    blocks.append(f"{m.inp.strip()}. {m.output.strip()}")
                 else:
-                    blocks.append(m.input.strip())
+                    blocks.append(m.inp.strip())
                     blocks.append(m.output.strip())
             return sep.join(blocks)
 
         else:
             if join_io:
                 return [
-                    (f" 🧠 > {m.input.strip()}\n 🖥  > {m.output.strip()}") #, m.timestamp)
+                    (f" 🧠 > {m.inp.strip()}\n 🖥  > {m.output.strip()}") #, m.timestamp)
                     for m in tail
                 ]
             else:
@@ -935,11 +967,16 @@ def main():
             handle_cloud_command(nhce.memory)
             continue  # Skip standard generation
 
-        if user.lower().startswith("settings"):
-                live_params, msg = handle_settings_command(user, live_params)
-                print(msg)            # or route to console log
-                continue
-        
+        if user.lower().startswith("config"):
+            live_params, msg = handle_settings_command(user, live_params)
+            print(msg)            # or route to console log
+            continue
+                
+        if usr.lower().strip() == "umb":
+            print(">> 💾 ", nhce.memory_file)
+            continue  # Skip standard generation        
+            
+            
         print(f"\nSapphire> {nhce.enforce_sentence_boundaries(gen.generate(usr, write_memory=True))}\n")
 
 if __name__ == "__main__":
