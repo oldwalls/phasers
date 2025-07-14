@@ -225,7 +225,12 @@ def main():
 
     
 # ─────── MAIN CLI loop
-  
+    
+    
+
+    for chatlog in nhce.tail_memories(n=3):
+        print(chatlog)
+    
     while True:
         print('-------')
         usr = input(" 🧠 > ")

@@ -493,7 +493,7 @@ class NHCE_Engine:
             blocks = []
             for m in tail:
                 if join_io:
-                    blocks.append(f"{m.input.strip()}\n{m.output.strip()}")
+                    blocks.append(f"{m.input.strip()}. {m.output.strip()}")
                 else:
                     blocks.append(m.input.strip())
                     blocks.append(m.output.strip())
@@ -502,7 +502,7 @@ class NHCE_Engine:
         else:
             if join_io:
                 return [
-                    (f"{m.input.strip()}\n{m.output.strip()}", m.timestamp)
+                    (f" 🧠 > {m.input.strip()}\n 🖥  > {m.output.strip()}") #, m.timestamp)
                     for m in tail
                 ]
             else:
@@ -587,7 +587,7 @@ class ManualSampler:
         ##    print("**** <context memory retrive>:")
         
             # ---- 2. Pull memories & build bias
-            ctx_block = self.mem.tail_memories(n=8, as_text=True, join_io=True) 
+            ctx_block = self.mem.tail_memories(n=8, as_text=True, join_io=False) 
             
             memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload=self.inference_mem, floor=self.sigma)
 
