@@ -88,10 +88,11 @@ This is **logic closure scoring** — an attempt to pick the most semantically c
            │
            ▼
 ┌────────────────────────────────────┐
-│ 2 · final prompt =                │
-│   • tail of last k turns          │
-│   • current user prompt           │
-│   • chrono-tapered memory block   │
+│ 2 · final prompt =                 │
+│   • tail of last k turns           │
+│   • current user prompt            │
+│   • chrono-tapered memory block    │
+|   * current user prompt            |
 └────────────────────────────────────┘
            │
            ▼
