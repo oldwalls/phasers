@@ -280,7 +280,7 @@ class MemoryLoader:
 
         print("\nAvailable Memory Files:\n")
         for idx, fname in enumerate(files):
-            print(f"[{idx}] {fname.replace("emergence_UMB_", "")}")
+            print(f"[{idx}] {fname.replace("emergence_UMB_", "").replace(".json", "")}")
 
         while True:
             try:
@@ -736,8 +736,9 @@ class ManualSampler:
             # 2. post-scrub logic
             # ------------------------------------------------------------
             
-            if len(text) < 14:
-                print("[X]", end="", flush=True)                 # we did remove something
+            if len(text) < 9:
+                print("❌", end="", flush=True) 
+                continue # we did remove something
             else:    
                 babble = False
                 #print(self.mem.enforce_sentence_boundaries(text)," [X] \n ")
