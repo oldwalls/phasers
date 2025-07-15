@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/138_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/142_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -13,6 +13,8 @@
 <img src="phasers.png" width="300" alt="Phasers Logo"/>
 
 A lightweight, recursive AI engine built on **GPT-2-mini**, somewhere between a chatbot, a ghost, and a simulation that remembers you.
+
+[YouTube Phasers terminal video](https://www.youtube.com/watch?v=RqZf-PCr1Zs&t=7s)
 
 ---
 
