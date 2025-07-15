@@ -7,16 +7,19 @@ from param_store import ParamStore   # import the class from previous answer
 
 STORE_PATH = "michael_params.json"
 STORE = ParamStore(STORE_PATH)
-
+ 
 HELP_TEXT = textwrap.dedent("""
-    settings                 → show live parameters
-    settings list            → list saved presets
-    settings load  NAME      → load preset into live params
-    settings saveas NAME     → save current live params as new preset
-    settings set KEY VAL     → change a single param (not auto-saved)
-    settings update NAME KEY VAL   → patch a stored preset
-    settings delete NAME     → remove a preset
-    settings help            → show this help
+    config                  → show live parameters
+    config list             → list saved presets
+    config load  NAME       → load preset into live params
+    config saveas NAME      → save current live params as new preset
+    config set KEY VAL      → change a single param (not auto-saved)
+    config update NAME KEY VAL   → patch a stored preset
+    config delete NAME      → remove a preset
+    cloud                   → render active UMB wordcloud    
+    load                    → Load a UMB preset
+    umb                     → Display current UMB
+    config help             → show this help
 """).strip()
 
 # Descriptions for each parameter (extend / edit as you wish)
@@ -34,6 +37,7 @@ DESCR = {
     "n_sieve"            : "LLM passes before SBERT rank choose",
     "inference_mem"      : "Switches memory source: / 0-prompt only memory scan / 1-prompt -with- inference scan & output append",
     "sieve_rank_mem"     : "Switches ranking source: / 0-prompt only / 1-with prompt memory / 2-prompt & inference memory",
+    "sigma"              : "floor of exponential memory decay function",
 }
 
 
