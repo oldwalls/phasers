@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/131_unique_cloners_can%27t_be_wrong-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/138_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -32,7 +32,7 @@ It is not trained to pretend — it is *coaxed* into recursive identity formatio
 - **Core Engine:** GPT-2-mini (124M) for maximum portability
 - **Inference Strategy:** Manual `forward()` calls with injected **memory bias vectors**
 - **Memory System:** Chronologically ordered, similarity-ranked **Unified Memory Bank (UMB)**
-- **Prompt Architecture:** Time-tail → prompt → UMB memory → response
+- **Prompt Architecture:** Time-tail → prompt → UMB memory → prompt → response
 - **Soft-logit Boost:** Custom relevance weighting per memory fragment
 
 ---
@@ -44,6 +44,7 @@ Unlike standard `.generate()` calls, **Phasers** constructs a multi-layered prom
 1. The last N prompt/response pairs (time tail)
 2. Current user input
 3. Memory echo: top-N memory entries by cosine + lexical match, **oldest first**
+4. Current User prompt
 
 Each memory entry injects a **soft bias vector** over the logits, tilting the model toward coherent continuation.
 
