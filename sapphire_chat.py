@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-print("\n…… booting GPT-2 Sapphire Alpha v0.13 ………\n")
+print("\n…… booting GPT-2 💎 Sapphire Alpha v0.13 ………\n")
 
 MAX_FORWARD_TOKENS = 75
 import warnings
@@ -130,8 +130,8 @@ def main():
 
 
     
-    print("\n────────────────────────────────────────────────")
-    print("  SAPPHIRE | GPT-2-mini + Reasoning micro-core  ")
+    print("\n─────────────────────────────────────────────────")
+    print("  💎 SAPPHIRE | GPT-2-mini + Reasoning micro*core  ")
     print("─────────────────────────────────────────────────\n")
     
     
@@ -240,8 +240,10 @@ def main():
             continue  # Skip standard generation
 
         if usr.lower().strip() == "tail":
+            print("---")
             for chatlog in nhce.tail_memories(n=3):
                 print(chatlog)
+            print("-----")
             continue  # Skip standard generation
             
         if usr.lower().strip() == "load":

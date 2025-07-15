@@ -7,7 +7,7 @@ Adds one-command fine-tuning on a .txt corpus and auto-load of
 latest checkpoint for chat mode.
 """
 
-print("………starting up………loading libraries, models and settings………\n")
+print(" ⏱  starting up………loading libraries, models and settings………\n")
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -287,7 +287,7 @@ class MemoryLoader:
                 choice = int(input("\nSelect a memory file by number: "))
                 if 0 <= choice < len(files):
                     self.memory_file = os.path.join(self.directory, files[choice])
-                    print(f"Selected: {files[choice]}")
+                    print(f"Selected: {files[choice]} \n")
                     return self.memory_file
                     
                 else:
@@ -877,14 +877,6 @@ class ManualSampler:
 #####################################################
 
 
-    """
-    gpt2_v_3 · NHCE — Soft-Logit + TXT-Trainer  (v3.1)
-    --------------------------------------------------
-    Adds one-command fine-tuning on a .txt corpus and auto-load of
-    latest checkpoint for chat mode.
-    """
-
-
 # ──────────────────────────────────────────────────────────────────
 # 1.  TRAINER  – now with  .txt  support
 # ──────────────────────────────────────────────────────────────────
@@ -955,7 +947,7 @@ class GPT2CustomTrainer:
         latest = max(paths, key=lambda p: int(p.split('-')[-1]))
         
         
-        print("▸ Loading finetuned weights →", latest)
+        print(" 🐌 Loading finetuned model weights →", latest)
         self.model = GPT2LMHeadModel.from_pretrained(
             latest,
             torch_dtype="auto",
