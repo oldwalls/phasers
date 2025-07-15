@@ -30,7 +30,7 @@ The final prompt sent to the LLM follows this structure:
 1. A **time-ordered tail** of the last `n=8` prompt/response pairs.
 2. The **current user prompt**.
 3. A **chronologically ordered and ranked by relevance** top-N list of contextually similar memory entries (retrieved from the Unified Memory Bank — UMB).
-4. The **current user prompt**.
+4. Optional: The **current user prompt**.
 
 Each memory entry is weighted according to relevance, forming a *semantic induction cascade*. This structure triggers the model's internal logic narrative to extend itself — attempting to generalize based on prior knowledge.
 
@@ -93,7 +93,7 @@ This is **logic closure scoring** — an attempt to pick the most semantically c
 │   • tail of last k turns          │ | direction of logic induction chain
 │   • current user prompt           │ | 
 │   • chrono-tapered memory block   │ ▼
-|   • current user prompt           | ▼
+|   • option: current user prompt   | ▼
 └───────────────────────────────────┘
            │
            ▼
