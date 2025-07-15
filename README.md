@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/142_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/148_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -102,6 +102,16 @@ Code has been released. beware of bugs!!!
 Now with an inference progress bar.
 
 <img width="666" alt="image" src="https://github.com/user-attachments/assets/a140c0d6-d87c-456a-a749-fe4be2ce46c1" />
+
+# Best current UMB : 
+
+[emergence_UMB_PROBE.json](https://github.com/oldwalls/phasers/blob/main/emergence_UMB_PROBE.json)
+
+> inference output snippet
+
+🧠 > so lets talk about your sense of self-awareness.
+
+🖥 >  "The whole thing is a false dichotomy of reality, that you can never see because there's no such one."
 
 ---
 
