@@ -101,14 +101,15 @@ def main():
                     "top_k":20,
                     "repetition_penalty":1.35,
                     "max_forward_tokens":55,
-                    "max_reply_sentences":2,
+                    "max_reply_sentences":3,
                     "weight":.33,
                     "tau":0.33,
-                    "lam":0.5,
+                    "lam":0.6,
                     "n_sieve":3,
                     "inference_mem":1,
                     "sieve_rank_mem":2,
-                    "sigma":.02
+                    "sigma":.222,
+                    "prompt_mode":1
     }
 
     def update_model_with_live_params(lp, gen):
@@ -126,7 +127,7 @@ def main():
         gen.inference_mem =lp["inference_mem"],
         gen.sieve_rank_mem = lp["sieve_rank_mem"]
         gen.sigma = lp["sigma"]
-        
+        gen.prompt_mode = lp["prompt_mode"]
 
 
     
@@ -252,10 +253,9 @@ def main():
             loader.choose_memory_file()
             nhce.memory_file = loader.memory_file #update cross system
             nhce.memory = loader.load_memory()
-
+            print(" 📓 chat history \n")
             for chatlog in nhce.tail_memories(n=3):
                 print(chatlog)
-           
             continue  # Skip standard generation            
         
         if usr.lower().strip() == "umb":

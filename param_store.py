@@ -14,12 +14,12 @@ class ParamStore:
         top_k              = 40,
         repetition_penalty = 1.15,
         max_forward_tokens = 256,
-        max_reply_sentences= 4,
+        max_reply_sentences= 3,
         top_n              = 15,
         weight             = 0.30,
         tau                = 0.35,
-        lam                = 0.95,
-        n_sieve            = 1
+        lam                = 0.333,
+        n_sieve            = 3
     ))
     params = store.get("balanced_v1")
     store.update("balanced_v1", temp=0.72)   # tweak one field
@@ -30,7 +30,7 @@ class ParamStore:
     REQUIRED_KEYS = {
         "temp","top_p","top_k","repetition_penalty",
         "max_forward_tokens","max_reply_sentences",
-        "top_n","weight","tau","lam","n_sieve", "inference_mem", "sieve_rank_mem", "sigma"
+        "top_n","weight","tau","lam","n_sieve", "inference_mem", "sieve_rank_mem", "sigma", "prompt_mode",
     }
 
     def __init__(self, path:str="michael_params.json"):

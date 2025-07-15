@@ -38,6 +38,7 @@ DESCR = {
     "inference_mem"      : "Switches memory source: / 0-prompt only memory scan / 1-prompt -with- inference scan & output append",
     "sieve_rank_mem"     : "Switches ranking source: / 0-prompt only / 1-with prompt memory / 2-prompt & inference memory",
     "sigma"              : "floor of exponential memory decay function",
+    "prompt_mode"        : "2-with user_prompt on end, 1-with memory tail on end",
 }
 
 

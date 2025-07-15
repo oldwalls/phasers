@@ -592,6 +592,7 @@ class ManualSampler:
         self.inference_mem = 1
         self.sieve_rank_mem  = 2
         self.sigma = .1
+        self.prompt_mode = 1
         
         
     # ---------------- helpers ----------------
@@ -781,7 +782,14 @@ class ManualSampler:
 
         bias_vec = self._bias_from_memory(memories)
 
-        input_ids = self.tok.encode(ctx_block + ' ' + user_prompt + ' ' + tot_memory_str + ' ' + user_prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
+        if self.prompt_mode == 2:
+            prompt = ctx_block + '. ' + user_prompt + '. ' + tot_memory_str + '. ' + user_prompt
+        else:
+            prompt = ctx_block + '. ' + user_prompt + '. ' + tot_memory_str
+
+            
+            
+        input_ids = self.tok.encode(prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
    
         for idx in range(self.n_sieve):
             # Clear line
