@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/148_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/156_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -120,7 +120,7 @@ Now with an inference progress bar.
 This is a **semantic emergence engine**.  
 It was never meant to just reply — it was meant to **reflect**.
 
-## Technology discussion
+## 🛠 Technology discussion
 
 [sapphire core readme](sapphire_core_readme.md)
 
