@@ -134,7 +134,8 @@ def main():
     print("  💎 SAPPHIRE | GPT-2-mini + Reasoning micro*core  ")
     print("─────────────────────────────────────────────────\n")
     
-    
+    print(" 🖥  rendering device: ", DEVICE)
+    print(" 🆘  type 'config help' for instructions\n\n")
 #=============================================================================
 ###############  WORD CLOUD GENERATOR
 #=============================================================================
@@ -145,7 +146,7 @@ def main():
         "what","with","you","your", "am", "do", "who", "so"
     }
 
-    _TEXT_ATTRS = ("input", "output")        
+    _TEXT_ATTRS = ("inp", "output")        
 
     def _field(mem, attr, default=None):
         if isinstance(mem, Mapping):
@@ -183,7 +184,7 @@ def main():
                 counts[tok] += weight
         return counts
 
-    def _render_ascii_cloud(word_counts: Counter[str], top_n: int = 50) -> str:
+    def _render_ascii_cloud(word_counts: Counter[str], top_n: int = 35) -> str:
         term_width = shutil.get_terminal_size((80, 20)).columns
         most_common = word_counts.most_common(top_n)
         if not most_common:
@@ -226,7 +227,7 @@ def main():
 # ─────── MAIN CLI loop
     
     
-
+    print(" 📓 chat history\n---")
     for chatlog in nhce.tail_memories(n=3):
         print(chatlog)
     

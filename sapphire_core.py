@@ -41,7 +41,7 @@ _STOPWORDS = {
     "a","an","and","are","as","at","be","but","by","for","from","has","have",
     "he","her","his","i","in","is","it","its","me","my","of","on","or","our",
     "s","she","that","the","their","them","they","this","to","was","we","were",
-    "what","with","you","your", "am", "do", "who", "so"
+    "what","with","you","your", "am", "do", "who", "so", "don't", "i'm"
 }
 _FIELD_PREFERENCE = ("text", "content", "fragment", "string")
 # ----------------------------------------------------------------------
