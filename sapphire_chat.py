@@ -96,18 +96,18 @@ def main():
 
     live_params = {
                     "temp":0.567,
-                    "top_n":13,
+                    "top_n":int(13),
                     "top_p":0.7,
                     "top_k":20,
                     "repetition_penalty":1.35,
                     "max_forward_tokens":55,
                     "max_reply_sentences":3,
-                    "weight":.33,
-                    "tau":0.33,
+                    "weight":.666,
+                    "tau":0.222,
                     "lam":0.6,
                     "n_sieve":3,
                     "inference_mem":1,
-                    "sieve_rank_mem":2,
+                    "sieve_rank_mem":1,
                     "sigma":.222,
                     "prompt_mode":1
     }

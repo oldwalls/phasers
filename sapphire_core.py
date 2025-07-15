@@ -304,7 +304,7 @@ class MemoryLoader:
                 raw = json.load(fh)
             return [MemoryNode(**m) for m in raw]
 
-        print("🔢 initializing UMB")
+        print("\n🔢 initializing UMB")
         now = datetime.utcnow().isoformat()
         root = MemoryNode(now, "You are", "I am", "identity", 1.0, 1.0, 1.0)
         self._persist_memory([root])
@@ -323,7 +323,7 @@ class MemoryLoader:
                 raw = json.load(fh)
             return [MemoryNode(**m) for m in raw]
 
-        print("🔢 initializing UMB")
+        print("\n🔢 initializing UMB")
         # seed with root‑identity prompt
         now = datetime.utcnow().isoformat()
         root = MemoryNode(now, "You are", "I am", "identity", 0.95, 1.0, 1.0)
@@ -397,7 +397,7 @@ class NHCE_Engine:
                 raw = json.load(fh)
             return [MemoryNode(**m) for m in raw]
 
-        print("🔢 initializing UMB")
+        print("\n🔢 initializing UMB")
         now = datetime.utcnow().isoformat()
         root = MemoryNode(now, "You are", "I am", "identity", 1.0, 1.0, 1.0)
         self._persist([root])
@@ -443,9 +443,15 @@ class NHCE_Engine:
 
         # --- step 1: normal blended score (unchanged) ------------------
         q_emb = self.embedder.encode(prompt, convert_to_tensor=True)
-        scored = []
         
+        scored = []
+        ctr = 0
+        mem_len = len(self.memory)
+        ticks = 6
+        interval = max(1, mem_len // ticks)
+
         total_memory = ''
+        
         for mem in self.memory:
             
             if payload == 0:
@@ -463,6 +469,11 @@ class NHCE_Engine:
             
             scored.append((total_memory, min(max(blend, .35), .98), mem.timestamp))
             total_memory = ''
+            ctr = ctr + 1
+            
+            if ctr % interval == 0 and ctr // interval < ticks:
+                print("🎞️", end="", flush=True)
+                       
 
         scored.sort(key=lambda x: x[1], reverse=True)
         ranked = scored[:top_n]              # ← relevance order kept
@@ -726,8 +737,8 @@ class ManualSampler:
                     hit = True
                     text  = pattern.sub("", text) 
 
-            text = fix_punctuation(text, self.tool)
-            text = self.tool.correct(text)
+            #text = fix_punctuation(text, self.tool)
+            #text = self.tool.correct(text)
             
             #text_lc = text.lower()                       # normalise once
 
@@ -765,14 +776,14 @@ class ManualSampler:
             # ---- 1. Encode prompt
             
         ##    print("**** <context memory retrive>:")
-        
+        print(" 🌀 tail ", end="", flush=True)
         # ---- 2. Pull memories & build bias
         ctx_block = self.mem.tail_memories(n=8, as_text=True, join_io=False) 
-        
+        print(" 🍥 context retrieval ", end="", flush=True) 
         memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload=self.inference_mem, floor=self.sigma)
 
-
-
+        print(" ✅ retrieved", end="", flush=True)
+        
         tot_memory_str = ''
         for memory_text, memory_weight in memories:
             tot_memory_str = tot_memory_str + memory_text
@@ -790,7 +801,8 @@ class ManualSampler:
             
             
         input_ids = self.tok.encode(prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
-
+        
+        print("\r" + " " * 100, end="\r", flush=True)
         if self.n_sieve > 1:
 ###
             for idx in range(self.n_sieve):
@@ -874,6 +886,7 @@ class ManualSampler:
 
             best_text = valid_strs[best_idx]
         else:
+            print(f"\r 🔀 LLM inference  ", end="", flush=True)
             best_text = self.generate_single(input_ids, bias_vec)
 ####
         if write_memory:
