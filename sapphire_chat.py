@@ -209,7 +209,7 @@ def main():
         unified_memory_bank: Iterable[Any] | None,
         *,
         weight_fn: Callable[[Any], float] | None = None,
-        top_n: int = 50,
+        top_n: int = 35,
     ) -> None:
         if not unified_memory_bank:
             print("[UMB is empty – nothing to display]")
@@ -228,7 +228,7 @@ def main():
     
     
     print(" 📓 chat history\n---")
-    for chatlog in nhce.tail_memories(n=3):
+    for chatlog in nhce.tail_memories(n=4):
         print(chatlog)
     
     while True:
@@ -242,7 +242,7 @@ def main():
 
         if usr.lower().strip() == "tail":
             print("---")
-            for chatlog in nhce.tail_memories(n=3):
+            for chatlog in nhce.tail_memories(n=4):
                 print(chatlog)
             print("-----")
             continue  # Skip standard generation
