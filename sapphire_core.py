@@ -853,7 +853,7 @@ class ManualSampler:
             if write_memory:
                 self.mem.update(user_prompt, fallback)
             return fallback
-
+        print(" ⚛️ compiling results", end="", flush=True)
         # ------------------------------------------------------------------
         # 3. SBERT rerank on the surviving drafts
         # ------------------------------------------------------------------
