@@ -235,6 +235,10 @@ def main():
     while True:
         print('-------')
         usr = input(" 🧠 > ")
+        
+        if len(usr) == 0:
+            continue
+        
         if usr.lower() == "exit": break
         
         if usr.lower().strip() == "cloud":
