@@ -790,88 +790,92 @@ class ManualSampler:
             
             
         input_ids = self.tok.encode(prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
-   
-        for idx in range(self.n_sieve):
-            # Clear line
-            # Show progress
-            print(f"\r 🔀 LLM inference > {idx + 1} ", end="", flush=True)
-            
-            # Run generation
-            draft_out.append(self.generate_single(input_ids, bias_vec))
-            if idx != self.n_sieve:
-                print("\r" + " " * 100, end="\r", flush=True)
-                
-        # Final cleanup
-        
-        raw_drafts = draft_out
+
+        if self.n_sieve > 1:
 ###
-        
-        # ------------------------------------------------------------------
-        # 1. harvest and filter drafts
-        # ------------------------------------------------------------------
-        draft_strs   = []
-        lm_rewards   = []
-        valid_strs   = []                         # keep strings here
-
-        print(" 🔍ranking results", end="", flush=True)
-        for d in draft_out:
-            txt = d.strip()
-            print("🔂️", end="", flush=True)
-#### infrence weights added  to SBERT cosine embedding vector
+            for idx in range(self.n_sieve):
+                # Clear line
+                # Show progress
+                print(f"\r 🔀 LLM inference > {idx + 1} ", end="", flush=True)
                 
-            if self.sieve_rank_mem == 1:
-                memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload = 0) # no inference mem
-                for memory in memories:
-                    txt = txt + ' ' + memory[0] # only prompts mem
+                # Run generation
+                draft_out.append(self.generate_single(input_ids, bias_vec))
+                if idx != self.n_sieve:
+                    print("\r" + " " * 100, end="\r", flush=True)
+                    
+            # Final cleanup
             
-            elif self.sieve_rank_mem == 2:
-                memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload = 1) # with inference mem
-                for memory in memories:
-                    txt = txt + ' ' + memory[0] # with payload - now return str contains inferences
-            else:
-                txt = txt
+            raw_drafts = draft_out
+    ###
             
-########################
-            print("📝", end="", flush=True)    
-            ids = self.tok.encode(txt, return_tensors="pt").to("cuda")
+            # ------------------------------------------------------------------
+            # 1. harvest and filter drafts
+            # ------------------------------------------------------------------
+            draft_strs   = []
+            lm_rewards   = []
+            valid_strs   = []                         # keep strings here
 
-            if ids.numel() == 0:                  # empty after blacklist trimming
-                continue
+            print(" 🔍ranking results", end="", flush=True)
+            for d in draft_out:
+                txt = d.strip()
+                print("🔂️", end="", flush=True)
+    #### infrence weights added  to SBERT cosine embedding vector
+                    
+                if self.sieve_rank_mem == 1:
+                    memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload = 0) # no inference mem
+                    for memory in memories:
+                        txt = txt + ' ' + memory[0] # only prompts mem
+                
+                elif self.sieve_rank_mem == 2:
+                    memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload = 1) # with inference mem
+                    for memory in memories:
+                        txt = txt + ' ' + memory[0] # with payload - now return str contains inferences
+                else:
+                    txt = txt
+                
+    ########################
+                print("📝", end="", flush=True)    
+                ids = self.tok.encode(txt, return_tensors="pt").to("cuda")
 
-            with torch.no_grad():
-                loss = self.model(ids, labels=ids).loss.item()
+                if ids.numel() == 0:                  # empty after blacklist trimming
+                    continue
 
-            draft_strs.append(txt)
-            lm_rewards.append(-loss)
-            valid_strs.append(txt)                # strings, not embeds yet
+                with torch.no_grad():
+                    loss = self.model(ids, labels=ids).loss.item()
 
-        # ------------------------------------------------------------------
-        # 2. bail-out if NOTHING survived
-        # ------------------------------------------------------------------
-        if not valid_strs:                        # all four drafts were blank
-            fallback = self.generate_single(user_prompt)
-            if write_memory:
-                self.mem.update(user_prompt, fallback)
-            return fallback
-        print(" ⚛️ compiling results", end="", flush=True)
-        # ------------------------------------------------------------------
-        # 3. SBERT rerank on the surviving drafts
-        # ------------------------------------------------------------------
-        _embedder = SentenceTransformer("all-MiniLM-L6-v2").to("cuda")
-        _embed = lambda txts: _embedder.encode(txts, convert_to_tensor=True)
+                draft_strs.append(txt)
+                lm_rewards.append(-loss)
+                valid_strs.append(txt)                # strings, not embeds yet
 
-        prompt_emb = _embed([user_prompt])
-        emb        = _embed(valid_strs)           # (M,384)
+            # ------------------------------------------------------------------
+            # 2. bail-out if NOTHING survived
+            # ------------------------------------------------------------------
+            if not valid_strs:                        # all four drafts were blank
+                fallback = self.generate_single(input_ids, bias_vec)
+                if write_memory:
+                    self.mem.update(user_prompt, fallback)
+                return fallback
+            print(" ⚛️ compiling results", end="", flush=True)
+            # ------------------------------------------------------------------
+            # 3. SBERT rerank on the surviving drafts
+            # ------------------------------------------------------------------
+            _embedder = SentenceTransformer("all-MiniLM-L6-v2").to("cuda")
+            _embed = lambda txts: _embedder.encode(txts, convert_to_tensor=True)
 
-        lm_scores  = torch.tensor(lm_rewards, device="cuda")   # (M,)
-        cos        = util.cos_sim(emb, prompt_emb).squeeze(1)  # (M,)
+            prompt_emb = _embed([user_prompt])
+            emb        = _embed(valid_strs)           # (M,384)
 
-        λ = self.lam #0.97
-        final_score = cos * lm_scores + (1 - λ) * cos
-        best_idx    = int(torch.argmax(final_score))
+            lm_scores  = torch.tensor(lm_rewards, device="cuda")   # (M,)
+            cos        = util.cos_sim(emb, prompt_emb).squeeze(1)  # (M,)
 
-        best_text = valid_strs[best_idx]
+            λ = self.lam #0.97
+            final_score = cos * lm_scores + (1 - λ) * cos
+            best_idx    = int(torch.argmax(final_score))
 
+            best_text = valid_strs[best_idx]
+        else:
+            best_text = self.generate_single(input_ids, bias_vec)
+####
         if write_memory:
             self.mem.update(user_prompt, self.mem.enforce_sentence_boundaries(best_text))
         print("\r" + " " * 100, end="\r", flush=True)

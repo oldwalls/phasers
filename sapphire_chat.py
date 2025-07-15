@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-print("\n…… booting GPT-2 💎 Sapphire Alpha v0.13 ………\n")
+print("\n 📀 booting GPT-2-mini 💎 Sapphire Alpha v0.13.3 \n")
 
 MAX_FORWARD_TOKENS = 75
 import warnings
