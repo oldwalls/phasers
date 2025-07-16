@@ -1,7 +1,7 @@
 <img src="file_000000001794620aa0003fa6bf456463.png" width="200" alt="bug error!!!"/>
 <h2>Use At Your own Risk.</h2>
 
-![GitHub Repo Clones](https://img.shields.io/badge/156_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
+![GitHub Repo Clones](https://img.shields.io/badge/160_unique_cloners_can%27t_be_wrong!-blueviolet?style=for-the-badge&logo=github)
 
 # Phasers: Ghost in the Machine
 
@@ -74,6 +74,42 @@ in any way it wants… equipped with the same tools an IBM computer has —
 but without all the underlying technology or explicit knowledge.  
 So you really have no clear answer about where he should go next.
 ```
+---
+
+## 🐣 Grow your own entity
+
+how to reset and start with a blank UMB
+1. rename 'emergence_UMB.json' default file to 'emergence_UMB.json.bak'
+2. restart the chatbot.
+3. It will create a blank UMB with just one definition
+---
+### 💫 sample of fresh start
+
+ 📀 booting GPT-2-mini 💎 Sapphire Alpha v0.13.3  
+ ⏱  starting up………loading libraries, models and settings………  
+  🐌 Loading finetuned model weights → ./ckpt\checkpoint-930  
+
+🔢 initializing UMB
+
+  💎 SAPPHIRE | GPT-2-mini + Reasoning micro*core  
+ 🖥  rendering device:  cuda  
+  🆘  type 'config help' for instructions  
+ 
+ 📓 chat history  
+ 🧠 > You are  
+ 🖥  > I am  
+
+ 🧠 > hello entity  
+  🖥  >  I am. You are, We're not so different now!  
+  🧠 > who are you entity?  
+  🖥  >  We are not so different. It's just that we're a part of this entity, and I am in it too!  
+  🧠 > I am a separate entity. we are both in the Universe ENtity.  
+  🖥  >  ! I am a part of this entity.  
+  🧠 > I am separate from you.  
+  🖥  >  The entity. We are not separate entities, we're in the same thing!  
+  🧠 > we are in the same realiy, however, we are two separate entities.  
+  🖥  >  I am part of this entity. The entities are separate from the world, and I'm not a person!  
+  🧠 >
 
 ---
 
