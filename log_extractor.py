@@ -12,13 +12,13 @@ with open(umb_file_path, "r", encoding="utf-8") as f:
 if isinstance(umb_data, list):
     clean_lines = []
     for entry in umb_data:
-        prompt = entry.get("input", "").strip()
+        prompt = entry.get("inp", "").strip()
         reply = entry.get("output", "").strip()
         if prompt or reply:
             if prompt:
-                clean_lines.append(f"🧠 You> {prompt}")
+                clean_lines.append(f"🧠 > {prompt}")
             if reply:
-                clean_lines.append(f"🖥 Phasers> {reply}")
+                clean_lines.append(f"🖥 > {reply}")
             clean_lines.append("")  # empty line between entries
 
     # Save clean log to file
