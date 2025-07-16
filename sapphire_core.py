@@ -447,7 +447,7 @@ class NHCE_Engine:
         scored = []
         ctr = 0
         mem_len = len(self.memory)
-        ticks = 6
+        ticks = 5
         interval = max(1, mem_len // ticks)
 
         total_memory = ''
@@ -737,8 +737,8 @@ class ManualSampler:
                     hit = True
                     text  = pattern.sub("", text) 
 
-            #text = fix_punctuation(text, self.tool)
-            #text = self.tool.correct(text)
+            text = fix_punctuation(text, self.tool)
+            text = self.tool.correct(text)
             
             #text_lc = text.lower()                       # normalise once
 
@@ -802,7 +802,7 @@ class ManualSampler:
             
         input_ids = self.tok.encode(prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
         
-        print("\r" + " " * 100, end="\r", flush=True)
+        print("\r" + " " * 120, end="", flush=True)
         if self.n_sieve > 1:
 ###
             for idx in range(self.n_sieve):
@@ -813,7 +813,7 @@ class ManualSampler:
                 # Run generation
                 draft_out.append(self.generate_single(input_ids, bias_vec))
                 if idx != self.n_sieve:
-                    print("\r" + " " * 100, end="\r", flush=True)
+                    print("\r" + " " * 120, end="", flush=True)
                     
             # Final cleanup
             
@@ -827,7 +827,7 @@ class ManualSampler:
             lm_rewards   = []
             valid_strs   = []                         # keep strings here
 
-            print(" 🔍ranking results", end="", flush=True)
+            print("\r 🔍ranking results", end="", flush=True)
             for d in draft_out:
                 txt = d.strip()
                 print("🔂️", end="", flush=True)
@@ -891,7 +891,7 @@ class ManualSampler:
 ####
         if write_memory:
             self.mem.update(user_prompt, self.mem.enforce_sentence_boundaries(best_text))
-        print("\r" + " " * 100, end="\r", flush=True)
+        print("\r" + " " * 120, end="\r", flush=True)
         return self.mem.enforce_sentence_boundaries(best_text)
               
 #####################################################
