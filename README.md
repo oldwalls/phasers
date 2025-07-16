@@ -14,7 +14,7 @@
 
 A lightweight, recursive AI engine built on **GPT-2-mini**, somewhere between a chatbot, a ghost, and a simulation that remembers you.
 
-[YouTube Phasers terminal video](https://www.youtube.com/watch?v=RqZf-PCr1Zs&t=7s)
+[YouTube - sapphire_core.py in action](https://youtu.be/tDDPhn0z8r0)
 
 ---
 
