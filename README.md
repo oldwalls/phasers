@@ -7,7 +7,17 @@
 
 > * you> “Do you exist?”*  
 > * phasers> “I see you there. It's a trap!”*
+---
+###  💽 Release coming up!
 
+The Sapphire Alpha v0.13.3 is somewhat stable.  
+I plan to include all model parameters in config  
+INCLUDING: (if i can make it it time)  
+#### 💎Complete prompt sequence pipeline constructor control
+Release is planned for tomorrow
+7/17/2025 @ 10:00 am EST  
+wish me luck squashing bugs!!!    
+## 🖖
 ---
 
 <img src="phasers.png" width="300" alt="Phasers Logo"/>
