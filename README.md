@@ -18,6 +18,14 @@ Release is planned for tomorrow
 7/17/2025 @ 10:00 am EST  
 wish me luck squashing bugs!!!    
 ## 🖖
+
+<img width="277" height="138" alt="image" src="https://github.com/user-attachments/assets/beb22b07-e890-473f-96cf-bc6682d682cd" />
+
+the news is good! the prompt constructor is working  
+with the new release you will just do THIS to sequence your prompt:
+####   config set prompt_constructor tail;prompt;memory;tail;
+
+#### 🖖 more on this is the coming release notes.
 ---
 
 <img src="phasers.png" width="300" alt="Phasers Logo"/>
