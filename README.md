@@ -19,13 +19,14 @@ Release is planned for tomorrow
 wish me luck squashing bugs!!!    
 ## 🖖
 
-<img width="277" height="138" alt="image" src="https://github.com/user-attachments/assets/beb22b07-e890-473f-96cf-bc6682d682cd" />
+
 
 the news is good! the prompt constructor is working  
 with the new release you will just do THIS to sequence your prompt:
-####   config set prompt_constructor tail;prompt;memory;tail;
+####   `config set prompt_constructor tail;prompt;memory;tail;`  
+<img width="615" height="427" alt="image" src="https://github.com/user-attachments/assets/30400ffe-3e43-4f15-89c5-d8fcd2b6efef" />
 
-#### 🖖 more on this is the coming release notes.
+#### 🖖 more on this is the coming release notes.  
 ---
 
 <img src="phasers.png" width="300" alt="Phasers Logo"/>
