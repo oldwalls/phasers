@@ -1,11 +1,14 @@
 # ----------------------------------------------------------
-#  Settings command helper for Michael CLI
+#  Settings command helper for Sapphire CLI
 # ----------------------------------------------------------
 import json, shlex, textwrap
 from typing import Dict, Any, Tuple
-from param_store import ParamStore   # import the class from previous answer
+from core.param_store import ParamStore  
+from core.sapphire_core import MemoryNode 
+import datetime
 
-STORE_PATH = "michael_params.json"
+
+STORE_PATH = "./presets/phasers_params.json"
 STORE = ParamStore(STORE_PATH)
  
 HELP_TEXT = textwrap.dedent("""
@@ -19,6 +22,8 @@ HELP_TEXT = textwrap.dedent("""
     cloud                   → render active UMB wordcloud    
     load                    → Load a UMB preset
     umb                     → Display current UMB
+    clean                   → Starts new UMB / 2 paramaters required
+    reload                  → Reload Default UMB
     config help             → show this help
 """).strip()
 
@@ -38,7 +43,8 @@ DESCR = {
     "inference_mem"      : "Switches memory source: / 0-prompt only memory scan / 1-prompt -with- inference scan & output append",
     "sieve_rank_mem"     : "Switches ranking source: / 0-prompt only / 1-with prompt memory / 2-prompt & inference memory",
     "sigma"              : "floor of exponential memory decay function",
-    "prompt_mode"        : "2-with user_prompt on end, 1-with memory tail on end",
+    "prompt_constr"      : "prompt sequence constructor (refer to docs)",
+    "top_t"              : "length of memory tail",
 }
 
 
@@ -53,9 +59,9 @@ def handle_settings_command(
     try:
         tokens = shlex.split(user_line)
     except ValueError as e:
-        return live_params, f"[settings] parse error: {e}"
+        return live_params, f"[config] parse error: {e}"
 
-    if len(tokens) == 1:                # plain 'settings' → show live
+    if len(tokens) == 1:                # plain 'config' → show live
         return live_params, json.dumps(live_params, indent=2)
 
     cmd = tokens[1].lower()
@@ -70,27 +76,29 @@ def handle_settings_command(
         name = tokens[2]
         try:
             live_params = STORE.get(name)
-            return live_params, f"[settings] loaded preset '{name}'"
+            return live_params, f"[config] loaded preset '{name}'"
         except KeyError:
-            return live_params, f"[settings] no preset named '{name}'"
+            return live_params, f"[config] no preset named '{name}'"
 
+    #------------ clean default UMB
+       # moved to chat
     # ---------- saveas ----------
     if cmd == "saveas" and len(tokens) == 3:
         name = tokens[2]
         try:
             STORE.add(name, live_params)
             STORE.save()
-            return live_params, f"[settings] saved current params as '{name}'"
+            return live_params, f"[config] saved current params as '{name}'"
         except KeyError:
-            return live_params, f"[settings] preset '{name}' already exists"
+            return live_params, f"[config] preset '{name}' already exists"
 
     # ---------- set (live only) ----------
     if cmd == "set" and len(tokens) == 4:
         key, val = tokens[2], tokens[3]
         if key not in STORE.REQUIRED_KEYS:
-            return live_params, f"[settings] unknown key '{key}'"
+            return live_params, f"[config] unknown key '{key}'"
         live_params[key] = _coerce(val)
-        return live_params, f"[settings] live param '{key}' set to {val} (not saved)"
+        return live_params, f"[config] live param '{key}' set to {val} (not saved)"
 
     # ---------- update stored preset ----------
     if cmd == "update" and len(tokens) == 5:
@@ -98,9 +106,9 @@ def handle_settings_command(
         try:
             STORE.update(name, **{key: _coerce(val)})
             STORE.save()
-            return live_params, f"[settings] preset '{name}' updated ({key}={val})"
+            return live_params, f"[config] preset '{name}' updated ({key}={val})"
         except (KeyError, ValueError) as e:
-            return live_params, f"[settings] {e}"
+            return live_params, f"[config] {e}"
 
     # ---------- delete ----------
     if cmd == "delete" and len(tokens) == 3:
@@ -108,9 +116,9 @@ def handle_settings_command(
         try:
             STORE.delete(name)
             STORE.save()
-            return live_params, f"[settings] deleted preset '{name}'"
+            return live_params, f"[config] deleted preset '{name}'"
         except KeyError:
-            return live_params, f"[settings] no preset named '{name}'"
+            return live_params, f"[config] no preset named '{name}'"
 
     # ---------- help ----------
     if cmd == "help":
@@ -123,7 +131,7 @@ def handle_settings_command(
             lines.append(f"{k:20} = {cur:<8}  — {DESCR.get(k, '')}")
         return live_params, "\n".join(lines)
 
-    return "[error]", "[settings] error in command - data not updated."
+    return "[error]", "[config] error in command - data not updated."
 
 # ------------------------- util -----------------------------
 def _coerce(val:str):

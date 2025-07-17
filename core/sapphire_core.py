@@ -29,13 +29,13 @@ from collections.abc import Mapping
 import re
 import math
 import time
-
+from core.sentence_segmenter import segment_text
 from transformers import logging as hf_logging
 hf_logging.set_verbosity_error()
 
 
 # ----------------------------------------------------------------------
-_TEXT_ATTRS = ("input", "output")        # <- exactly your schema
+_TEXT_ATTRS = ("inp", "output")        # <- exactly your schema
 # ▼  stop-words & field-preference lists  -------------------------------
 _STOPWORDS = {
     "a","an","and","are","as","at","be","but","by","for","from","has","have",
@@ -47,7 +47,7 @@ _FIELD_PREFERENCE = ("text", "content", "fragment", "string")
 # ----------------------------------------------------------------------
 
 _BLACKLIST = []
-with open("blacklist_phrases.txt") as fh:
+with open("./presets/blacklist_phrases.txt") as fh:
     for line in fh:
         phrase = line.strip().lower()
         if phrase:
@@ -60,32 +60,18 @@ B_SCALE      = 0.33    # per-token scale ⇒ stays small; keep from old code
 MAX_FORWARD_TOKENS = 85
 SALIENCE_LAMBDA = 1
 
-#######################################################
-#######################################################
-#######################################################
-#######################################################
-#######################################################
-
-#######################################################
-#######################################################
-#######################################################
-#######################################################
-#######################################################
-
-
-
 from torch import Tensor
 from transformers import (
     GPT2Tokenizer, GPT2LMHeadModel,
     Trainer, TrainingArguments, default_data_collator
 )
 from sentence_transformers import SentenceTransformer, util
-import language_tool_python as lt
+#import language_tool_python as lt
 from difflib import SequenceMatcher
 
 from collections import Counter
 
-from language_tool_python.utils import correct
+#from language_tool_python.utils import correct
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 EOS_ID = None  # will be filled after tokenizer init
@@ -166,84 +152,7 @@ def handle_cloud_command(
     cloud = _render_ascii_cloud(counts, top_n)
     print("\n" + cloud + "\n")
 
-
-# ──────────────────────────────────────────────────────────────────
-# 1.  TRAINER  – now with  .txt  support
 #
-## (venv) python gpt2_v_3.py train corpus.txt --epochs 2 --out ./ckpt
-# (venv) python gpt2_v_3.py chat
-#
-# ──────────────────────────────────────────────────────────────────
-class GPT2CustomTrainer:
-    def __init__(self, model_path: str = "microsoft/DialoGPT-small") -> None:
-        self.tok = GPT2Tokenizer.from_pretrained(model_path)
-        self.tok.pad_token = self.tok.eos_token
-        self.model = GPT2LMHeadModel.from_pretrained(model_path).to(DEVICE)
-
-    # --- new convenience fine-tune entry ----------------------------------
-    def finetune_txt(
-        self,
-        txt_file: str,
-        epochs: int = 1,
-        out_dir: str = "./ckpt",
-        max_len: int = 1024,
-    ) -> None:
-        print(f"▸ Loading corpus  {txt_file}")
-        with open(txt_file, encoding="utf-8") as fh:
-            raw = fh.read()
-
-        # simple rule-based chunking at sentence boundaries
-        segments, buf = [], []
-        for sent in re.split(r'(?<=[.!?])\s+', raw):
-            ids = self.tok.encode(sent, add_special_tokens=False)
-            if len(buf) + len(ids) > max_len:
-                segments.append(buf);  buf = []
-            buf.extend(ids)
-        if buf: segments.append(buf)
-
-        print(f"▸ Prepared {len(segments)} segments.")
-        def to_dataset():
-            for seg in segments:
-                pad = [self.tok.pad_token_id]*(max_len - len(seg))
-                ids = torch.tensor(seg + pad, dtype=torch.long)
-                att = (ids != self.tok.pad_token_id).long()
-                yield {"input_ids": ids, "attention_mask": att, "labels": ids}
-
-        dataset = list(to_dataset())
-
-        args = TrainingArguments(
-            output_dir   = out_dir,
-            overwrite_output_dir=True,
-            num_train_epochs = epochs,
-            per_device_train_batch_size = 1,
-            save_strategy = "epoch",
-            logging_steps = 50,
-            report_to = "none",
-            fp16 = torch.cuda.is_available()
-        )
-        print("▸ Starting fine-tune …")
-        Trainer(
-            self.model, args,
-            train_dataset = dataset,
-            data_collator = default_data_collator
-        ).train()
-        self.model.save_pretrained(out_dir)
-        self.tok.save_pretrained(out_dir)
-        print("✅ Training done; model saved to", out_dir)
-
-    # --- util to auto-load latest ckpt for chat ---------------------------
-    def maybe_load_latest(self, ckpt_root: str = "./ckpt") -> None:
-        paths = glob.glob(os.path.join(ckpt_root, "checkpoint-*"))
-        if not paths:  # nothing yet
-            return
-        #latest = max(paths, key=lambda p: int(p.split('-')[-1]))
-        latest = "EleutherAI/pythia-160m"
-        print("latest", latest)
-        print("▸ Loading finetuned weights →", latest)
-        self.model = GPT2LMHeadModel.from_pretrained(latest).to(DEVICE) # latest
-        self.tok   = GPT2Tokenizer.from_pretrained(latest)
-        self.tok.pad_token = self.tok.eos_token
-
 # -------------------------------------------------------------
 # 2.  NHCE ENGINE  (memory, intent, salience, etc.)
 # -------------------------------------------------------------
@@ -261,7 +170,7 @@ class MemoryNode:
 
 
 class MemoryLoader:
-    def __init__(self, directory=".", memory_file = "emergence_UMB.json"):
+    def __init__(self, directory="./memory", memory_file = "emergence_UMB.json"):
         self.directory = directory
         self.memory_file = memory_file
 
@@ -338,7 +247,7 @@ class NHCE_Engine:
         self,
         model: GPT2LMHeadModel,
         tokenizer: GPT2Tokenizer,
-        memory_file: str = "emergence_UMB.json",
+        memory_file: str = "./memory/emergence_UMB.json",
         max_tokens: int = 45,
     ) -> None:
         self.model = model
@@ -452,12 +361,14 @@ class NHCE_Engine:
 
         total_memory = ''
         
+### use fulltext for cosine & lexical
+
         for mem in self.memory:
             
             if payload == 0:
                 total_memory += mem.inp
             elif payload == 1:
-                total_memory += (mem.inp + " " + mem.output)
+                total_memory += (mem.inp + ". " + mem.output)
                         
             m_emb = self.embedder.encode(total_memory, convert_to_tensor=True)
             
@@ -465,12 +376,16 @@ class NHCE_Engine:
             
             lexical = len(set(prompt.split()) & set(total_memory.split())) / (len(total_memory.split()) + 1e-5)
             
-            blend = 0.60*cos + 0.40*lexical
+            blend = 0.65*cos + 0.35*lexical
+            # does the mixer value need to abe a hyperparametr??
             
-            scored.append((total_memory, min(max(blend, .35), .98), mem.timestamp))
+### use corpora training data encoding for direct inference out
+            
+            scored.append((f"{mem.inp.strip()}\n" + f"{mem.output.strip()}\n" + f"…" , min(max(blend, .35), .98), mem.timestamp))
             total_memory = ''
-            ctr = ctr + 1
             
+            ctr = ctr + 1
+            # prog bar
             if ctr % interval == 0 and ctr // interval < ticks:
                 print("🎞️", end="", flush=True)
                        
@@ -492,11 +407,7 @@ class NHCE_Engine:
 
         
     def enforce_sentence_boundaries(self, text: str) -> str:
-        """
-        Return the *first* complete sentence of `text`,
-        detected with Punkt when available.
-        """
-        from sentence_segmenter import segment_text
+
         sents = segment_text(text)                          # list of sentences
         if not sents:                                       # fallback: nothing split
             return text.strip()
@@ -568,6 +479,35 @@ class NHCE_Engine:
                 ]
             else:
                 return [(m.inp, m.output, m.timestamp) for m in tail]
+
+
+
+class PromptConstructor:
+    def __init__(self, memory, tail, prompt):
+        self.memory = memory        # memory buffer string
+        self.tail = tail            # prior response string
+        self.prompt = prompt        # user prompt
+        self.components = {
+            'memory': self.memory,
+            'tail': self.tail,
+            'prompt': self.prompt
+        }
+
+    def build_prompt(self, layout_str):
+        layout = [item.strip().lower() for item in layout_str.split(';') if item.strip()]
+        parts = []
+        for section in layout:
+            if section in self.components:
+                parts.append(self.components[section])
+            else:
+                print(f"\n❌ [PROMPT CONSTRUCTOR] Unknown component: '{section}'")
+                print(f"ℹ️ Available components: {list(self.components.keys())}")
+                return self.tail + ". " + self.prompt + ". " + self.memory  # Fallback prompt
+
+        return ". ".join(parts)
+
+
+
 ##################
 ###################
 # -------------------------------------------------------------
@@ -586,12 +526,13 @@ class ManualSampler:
         top_k: int = 32,
         top_p: float = .73,
         rep_penalty: float = 1.31,
-        bias_scale: float = 0.2111
+        bias_scale: float = 0.2111,
+        _embedder,
     ) -> None:
         self.model, self.tok = model, tokenizer
         self.mem = memory_engine
         self.temp, self.k, self.p, self.pen, self.b_scale = temperature, top_k, top_p, rep_penalty, bias_scale
-        self.tool = lt.LanguageTool('en-US')
+        #self.tool = lt.LanguageTool('en-US') # functionality deemed no loner neccesary
         self.model.eval()
         self.rep_penalty  = rep_penalty
         self.max_tokens = MAX_FORWARD_TOKENS
@@ -603,8 +544,9 @@ class ManualSampler:
         self.inference_mem = 1
         self.sieve_rank_mem  = 2
         self.sigma = .1
-        self.prompt_mode = 1
-        
+        self.prompt_construct = "tail;prompt;memory;"
+        self.top_t = 6
+        self.embedder = _embedder
         
     # ---------------- helpers ----------------
     def _apply_penalty(self, 
@@ -641,8 +583,7 @@ class ManualSampler:
     @torch.no_grad()
     def generate_single(self, input_ids, bias_vec, write_memory: bool = False) -> str:
         """Single‑shot generation with  true soft‑logit memory fusion."""
-        #print(" 🏁prompt generation ", end="", flush=True)        
-        
+               
         babble = True
         while babble:
             # ---- 1. Encode prompt
@@ -718,17 +659,7 @@ class ManualSampler:
                 input_ids = torch.tensor([[next_id]], device=DEVICE)
                 past = out.past_key_values
 
-
-            def fix_punctuation(text: str, lt=self.tool) -> str:
-                
-                lt.correct(text)
-                matches = [
-                    m for m in lt.check(text)
-                    if m.ruleId.startswith(("PUNCT", "COMMA", "UPPERCASE_SENTENCE_START"))
-                ]
-                return correct(text, matches)
-
-            
+        
             text = self.tok.decode(generated, skip_special_tokens=True)
             hit = False                             # did we find at least one phrase?
             for phrase in _BLACKLIST:
@@ -736,12 +667,6 @@ class ManualSampler:
                 if pattern.search(text):
                     hit = True
                     text  = pattern.sub("", text) 
-
-            text = fix_punctuation(text, self.tool)
-            text = self.tool.correct(text)
-            
-            #text_lc = text.lower()                       # normalise once
-
             
             ####
             # ------------------------------------------------------------
@@ -765,9 +690,15 @@ class ManualSampler:
 #####################################################
 #####################################################                
 
+
+
+
+
+
+
     def generate(self, user_prompt: str, write_memory: bool = True) -> str:
 
-       # lm_input = self.tok.encode(user_prompt, return_tensors="pt").to("cuda")
+       # lm_input = self.tok.encode(user_prompt, return_tensors="pt").to(DEVICE)
         draft_out = []
         # 1) draft N completions
         
@@ -777,30 +708,35 @@ class ManualSampler:
             
         ##    print("**** <context memory retrive>:")
         print(" 🌀 tail ", end="", flush=True)
+        
         # ---- 2. Pull memories & build bias
-        ctx_block = self.mem.tail_memories(n=8, as_text=True, join_io=False) 
+        
+        tail  = self.mem.tail_memories(self.top_t, as_text=True, join_io=False) 
+              
         print(" 🍥 context retrieval ", end="", flush=True) 
+        
         memories = self.mem.retrieve(user_prompt, top_n=self.top_n, payload=self.inference_mem, floor=self.sigma)
 
-        print(" ✅ retrieved", end="", flush=True)
+#### NEW BLOCK BASED PROMPT STRING CONCAT
         
-        tot_memory_str = ''
-        for memory_text, memory_weight in memories:
-            tot_memory_str = tot_memory_str + memory_text
-            
-        #print("**** <inference start>:")
-        #print(">>>>>>prompt RAW: ", tot_memory_str)
+        tot_memory_str = ""
+        
+        for mem in memories:     
+                tot_memory_str += mem[0]
+                
+########
 
-        bias_vec = self._bias_from_memory(memories)
+        bias_vec = self._bias_from_memory(memories)        
+        
+        print(" 🧰 construct prompt ", end="", flush=True)
+       
+        constructor = PromptConstructor(tot_memory_str, tail, user_prompt)
+        final_prompt = constructor.build_prompt(self.prompt_construct)
 
-        if self.prompt_mode == 2:
-            prompt = ctx_block + '. ' + user_prompt + '. ' + tot_memory_str + '. ' + user_prompt
-        else:
-            prompt = ctx_block + '. ' + user_prompt + '. ' + tot_memory_str
+        #print("🔧 Final Prompt:\n", final_prompt)        
+        
 
-            
-            
-        input_ids = self.tok.encode(prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
+        input_ids = self.tok.encode(final_prompt + self.tok.eos_token, return_tensors='pt').to(DEVICE)
         
         print("\r" + " " * 120, end="", flush=True)
         if self.n_sieve > 1:
@@ -847,7 +783,7 @@ class ManualSampler:
                 
     ########################
                 print("📝", end="", flush=True)    
-                ids = self.tok.encode(txt, return_tensors="pt").to("cuda")
+                ids = self.tok.encode(txt, return_tensors="pt").to(DEVICE)
 
                 if ids.numel() == 0:                  # empty after blacklist trimming
                     continue
@@ -871,18 +807,18 @@ class ManualSampler:
             # ------------------------------------------------------------------
             # 3. SBERT rerank on the surviving drafts
             # ------------------------------------------------------------------
-            _embedder = SentenceTransformer("all-MiniLM-L6-v2").to("cuda")
-            _embed = lambda txts: _embedder.encode(txts, convert_to_tensor=True)
+            
+            _embed = lambda txts: self.embedder.encode(txts, convert_to_tensor=True)
 
             prompt_emb = _embed([user_prompt])
             emb        = _embed(valid_strs)           # (M,384)
 
-            lm_scores  = torch.tensor(lm_rewards, device="cuda")   # (M,)
+            lm_scores  = torch.tensor(lm_rewards, device=DEVICE)   # (M,)
             cos        = util.cos_sim(emb, prompt_emb).squeeze(1)  # (M,)
 
-            λ = self.lam #0.97
-            final_score = cos * lm_scores + (1 - λ) * cos
-            best_idx    = int(torch.argmax(final_score))
+            λ = self.lam
+            final_score = λ * lm_scores + (1 - λ) * cos
+            best_idx = int(torch.argmax(final_score))
 
             best_text = valid_strs[best_idx]
         else:
@@ -982,56 +918,3 @@ class GPT2CustomTrainer:
         self.tok = GPT2Tokenizer.from_pretrained( "microsoft/DialoGPT-small")
         self.tok.pad_token = self.tok.eos_token
 
-# ──────────────────────────────────────────────────────────────────
-# 3.  CLI
-# ──────────────────────────────────────────────────────────────────
-def main():
-    ap = argparse.ArgumentParser()
-    sub = ap.add_subparsers(dest="mode")
-
-    t = sub.add_parser("train", help="fine-tune on .txt")
-    t.add_argument("txt",        help="path to corpus.txt")
-    t.add_argument("--epochs", type=int, default=1)
-    t.add_argument("--out",               default="./ckpt")
-
-    sub.add_parser("chat", help="interactive chat")
-
-    args = ap.parse_args()
-    trainer = GPT2CustomTrainer()
-
-    if args.mode == "train":
-        trainer.finetune_txt(args.txt, args.epochs, args.out)
-        return
-
-    # -------- chat ----------
-    trainer.maybe_load_latest(args.out if hasattr(args, "out") else "./ckpt")
-    nhce = NHCE_Engine(trainer.model, trainer.tok)
-    gen  = ManualSampler(trainer.model, trainer.tok, nhce)
-
-    print("\n********************************************")
-    print("******* SAPPHIRE GPT-2 chatbot *************")
-    print("********************************************")
-    print("[commands: exit, cloud, stats, depth, weight, top_p, top_k, temp]\n\n")
-    
-    while True:
-        usr = input("You> ")
-        if usr.lower() == "exit": break
-        
-        if usr.lower().strip() == "cloud":
-            handle_cloud_command(nhce.memory)
-            continue  # Skip standard generation
-
-        if user.lower().startswith("config"):
-            live_params, msg = handle_settings_command(user, live_params)
-            print(msg)            # or route to console log
-            continue
-                
-        if usr.lower().strip() == "umb":
-            print(">> 💾 ", nhce.memory_file)
-            continue  # Skip standard generation        
-            
-            
-        print(f"\nSapphire> {nhce.enforce_sentence_boundaries(gen.generate(usr, write_memory=True))}\n")
-
-if __name__ == "__main__":
-    main()
