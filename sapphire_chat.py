@@ -1,3 +1,12 @@
+# michael_reason_v4.py — GPT‑2 + UMB + Micro‑Reasoner
+# ---------------------------------------------------
+# This file merges your existing michael.py functionality with:
+#   • PromptClassifier – detects whether a user prompt needs reasoning.
+#   • ReasoningEngine  – lightweight symbolic scratch‑pad (arithmetic, causal, conditional).
+#   • Chat loop routing – normal small‑talk goes straight to ManualSampler; reasoning prompts
+#                         first get a symbolic scratch result, then are phrased fluently.
+# Keep all other code (trainer, NHCE_Engine, ManualSampler) unchanged.
+
 from __future__ import annotations
 
 print("\n 📀 booting GPT-2-mini 💎 Sapphire Alpha v0.13.3 \n")
@@ -22,13 +31,16 @@ from transformers import (
 from sentence_transformers import SentenceTransformer, util
 import language_tool_python as lt
 import nltk 
-#nltk.download('punkt') # you can comment out dwnload after first shot gets i
+#nltk.download('punkt') # you can comment out dwnload after first shot gets it
 
-from  cli.settings_manager import  handle_settings_command
+
 ### Hardware check
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ###
-from core.param_store import ParamStore
+#import tot_controller as totCtrl
+
+from settings_manager import handle_settings_command
+
 # ────────────────────────────────────────────────────────────────────────
 # 1.   PROMPT CLASSIFIER
 # ────────────────────────────────────────────────────────────────────────
@@ -46,8 +58,8 @@ class PromptClassifier:
 # ────────────────────────────────────────────────────────────────────────
 # 2.   NHCE MEMORY + SOFT‑LOGIT Sampler             
 # ────────────────────────────────────────────────────────────────────────
-from core.sapphire_core import NHCE_Engine, ManualSampler,  GPT2CustomTrainer   
-from core.sapphire_core import MemoryLoader, MemoryNode
+from sapphire_core import NHCE_Engine, ManualSampler,  GPT2CustomTrainer   
+from sapphire_core import MemoryLoader
 
 
 # ----------------------------
@@ -78,57 +90,53 @@ def main():
     # -------- chat ----------
     trainer.maybe_load_latest(args.out if hasattr(args, "out") else "./ckpt")
     nhce  = NHCE_Engine(trainer.model, trainer.tok)
-    gen   = ManualSampler(trainer.model, trainer.tok, nhce, _embedder = SentenceTransformer("all-MiniLM-L6-v2").to(DEVICE))
+    gen   = ManualSampler(trainer.model, trainer.tok, nhce)
     clf   = PromptClassifier()
     loader = MemoryLoader()
-    
+
     live_params = {
                     "temp":0.567,
-                    "top_n":int(10),
-                    "top_p":0.72,
-                    "top_k":42,
+                    "top_n":int(13),
+                    "top_p":0.7,
+                    "top_k":20,
                     "repetition_penalty":1.35,
                     "max_forward_tokens":55,
                     "max_reply_sentences":3,
-                    "weight":.42,
-                    "tau":0.246,
-                    "lam":0.65,
-                    "n_sieve":7,
+                    "weight":.666,
+                    "tau":0.222,
+                    "lam":0.6,
+                    "n_sieve":3,
                     "inference_mem":1,
-                    "sieve_rank_mem":2,
+                    "sieve_rank_mem":1,
                     "sigma":.222,
-                    "prompt_constr": str("memory;prompt;memory;tail;prompt;memory;prompt;"),
-                    "top_t": int(7),
+                    "prompt_mode":1
     }
 
-            
     def update_model_with_live_params(lp, gen):
-        gen.top_n = lp.get("top_n", 9)
-        gen.temp = lp.get("top_p", 0.7)
-        gen.top_k = lp.get("top_k", 20)
-        gen.pen = lp.get("repetition_penalty", 1.2)
-        gen.max_tokens = lp.get("max_forward_tokens", 60)
-        gen.max_reply_sentences = lp.get("max_reply_sentences", 3)
-        gen.b_scale = lp.get("weight", 0.5)
-        gen.tau = lp.get("tau", 0.2)
-        gen.lam = lp.get("lam", 0.6)
-        gen.n_sieve = lp.get("n_sieve", 3)
-        gen.inference_mem = lp.get("inference_mem", 1)
-        gen.sieve_rank_mem = lp.get("sieve_rank_mem", 1)
-        gen.sigma = lp.get("sigma", 0.2)
-        gen.prompt_constr = lp.get("prompt_constr", "memory;tail;prompt")
-        gen.top_t = lp.get("top_t", 6)
-            
+        
+        gen.top_n = lp["top_n"]
+        gen.temp = lp["top_p"]
+        gen.top_k = lp["top_k"]
+        gen.pen = lp["repetition_penalty"]
+        gen.max_tokens = lp["max_forward_tokens"]
+        gen.max_reply_sentences = lp["max_reply_sentences"]
+        gen.b_scale = lp["weight"]
+        gen.tau = lp["tau"]
+        gen.lam = lp["lam"]
+        gen.n_sieve = lp["n_sieve"]
+        gen.inference_mem =lp["inference_mem"],
+        gen.sieve_rank_mem = lp["sieve_rank_mem"]
+        gen.sigma = lp["sigma"]
+        gen.prompt_mode = lp["prompt_mode"]
+
 
     
-    print("\n───────────────────────────────────────────────────")
-    print("  💎 SAPPHIRE | GPT-2-mini + Reasoning micro 🕉 core  ")
-    print("─────────────────────────────────────────────────────\n")
+    print("\n─────────────────────────────────────────────────")
+    print("  💎 SAPPHIRE | GPT-2-mini + Reasoning micro*core  ")
+    print("─────────────────────────────────────────────────\n")
     
     print(" 🖥  rendering device: ", DEVICE)
     print(" 🆘  type 'config help' for instructions\n\n")
-    
-    
 #=============================================================================
 ###############  WORD CLOUD GENERATOR
 #=============================================================================
@@ -225,10 +233,10 @@ def main():
         print(chatlog)
     
     while True:
-        print('---')
+        print('-------')
         usr = input(" 🧠 > ")
         
-        if len(usr) == 0: #nextusr
+        if len(usr) == 0:
             continue
         
         if usr.lower() == "exit": break
@@ -257,39 +265,8 @@ def main():
         if usr.lower().strip() == "umb":
             print(">> 💾 ", nhce.memory_file)
             continue  # Skip standard generation        
-        
-        
-        if usr.lower().strip()[0:5] == "clean": 
-            
-            anchors = usr.split()
-            
-            if len(anchors) == 3:
-                prompt_anchor = anchors[1]
-                llm_anchor = anchors[2]
-                    
-                print("🔢 initializing UMB", flush=True )
-                # seed with root‑identity prompt
-                now = datetime.utcnow().isoformat()
-                root = MemoryNode(now, prompt_anchor, llm_anchor, "identity", 0.95, 1.0, 1.0)
-                nhce.memory = []  #wiped
-                nhce.memory.append(root)
-                nhce.memory_file = "./memory/emergence_UMB.json"
-                with open(nhce.memory_file, "w") as fh:
-                    json.dump([root.__dict__ for m in nhce.memory], fh, indent=2)
-                
-                print("[config] UMB initialized") 
-                continue # skip gen
-            print("[config] ❓ your did not provide init root pair of 'prompt inference'.\n[config] please append to 'clean' command ") 
-            continue #nextusr
-            
-        if usr.lower().strip() == "reload":
-            with open("./memory/emergence_UMB.json") as fh:
-                raw = json.load(fh)
-            nhce.memory = [MemoryNode(**m) for m in raw]
-            print("\n>> 🚅 ", "UMB reloaded")
-            continue  # Skip standard regeneration
-            
-            
+                        
+
         if usr.lower().startswith("config"):
                 live_params, msg = handle_settings_command(usr, live_params)
                 print(msg)            # or route to console log
